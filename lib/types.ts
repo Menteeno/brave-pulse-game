@@ -39,6 +39,21 @@ export interface GameProgress {
 }
 
 /**
+ * Represents individual gain and cost for a specific reaction type
+ */
+export interface ReactionGainAndCost {
+  selfRespect: number
+  selfRespectDescription?: string
+  relationshipHealth: number
+  relationshipHealthDescription?: string
+  goalAchievement: number
+  goalAchievementDescription?: string
+  customCost?: number
+  customCostTitle?: string
+  customCostDescription?: string
+}
+
+/**
  * Represents a situation card in the game
  */
 export interface SituationCard {
@@ -46,24 +61,18 @@ export interface SituationCard {
   title: string
   scenario: string
   emoji: string
-  individualGain: {
-    selfRespect: number
-    additionalSelfRespect?: number
-    description?: string
-  }
-  individualCost: {
-    relationshipHealth?: number
-    goalAchievement?: number
-    mentalEnergy?: number
-    personalTime?: number
-    description?: string
+  individualGainAndCost: {
+    passive: ReactionGainAndCost
+    aggressive: ReactionGainAndCost
+    assertive: ReactionGainAndCost
   }
   teamResults: {
     allAssertive?: number
+    allAssertiveDescription?: string
     onlyOneAssertive?: number
-    perPerson?: number
+    onlyOneAssertiveDescription?: string
     perPersonAssertive?: number
-    description?: string
+    perPersonAssertiveDescription?: string
   }
 }
 
@@ -87,6 +96,38 @@ export interface RoundReactions {
   round: number
   cardId: string
   reactions: PlayerReaction[]
+  feedback?: ReactionFeedback[] // Feedback from active player for assertive/aggressive reactions
+}
+
+/**
+ * Player scores for KPIs
+ */
+export interface PlayerScores {
+  playerId: string
+  selfRespect: number
+  relationshipHealth: number
+  goalAchievement: number
+}
+
+/**
+ * Reaction feedback from active player
+ */
+export interface ReactionFeedback {
+  playerId: string // The player who gave the reaction
+  relationshipHealthFeedback?: "good" | "normal" | "bad" // Feedback on relationship health impact
+  goalAchievementFeedback?: "could" | "normal" | "couldnt" // Feedback on goal achievement impact
+  customCostKpi?: "selfRespect" | "relationshipHealth" | "goalAchievement" // Which KPI to apply customCost to
+}
+
+/**
+ * Round score calculations
+ */
+export interface RoundScores {
+  round: number
+  cardId: string
+  playerScores: PlayerScores[] // Scores after this round
+  teamScore: number // Team score after this round
+  feedback?: ReactionFeedback[] // Feedback from active player for assertive/aggressive reactions
 }
 
 /**
@@ -102,6 +143,8 @@ export interface GameState {
   isCardRevealed: boolean
   selectedCardId: string | null
   reactions?: RoundReactions[] // Array of reactions for each round
+  scores?: RoundScores[] // Array of scores for each round
+  teamScore: number // Current team score
   startedAt: string
   lastUpdatedAt: string
 }
