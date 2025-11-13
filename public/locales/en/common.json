@@ -1,0 +1,14 @@
+{
+  "header": {
+    "title": "Bravery Game",
+    "nav": {
+      "home": "Home"
+    }
+  },
+  "home": {
+    "title": "Welcome to Bravery Game",
+    "description": "This is a sample page demonstrating the setup with Next.js, shadcn/ui, and i18n.",
+    "button": "Get Started"
+  }
+}
+
