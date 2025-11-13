@@ -29,6 +29,20 @@ The project uses **Next.js** (App Router + TypeScript) with **Tailwind CSS** and
 * The primary color theme must be **green-500** from Tailwind.
 * Maintain consistent spacing, padding, and rounded corners (use shadcn defaults).
 
+#### 🌐 RTL and Directional Styling
+
+To ensure full Right-to-Left (RTL) compatibility (for the Persian language):
+1.  **Prioritize Logical Classes:** Always use **logical CSS classes** (Start/End) for any directional styling (spacing, borders, text alignment) instead of physical classes (Left/Right).
+    * **Must use:** `ps-`, `pe-`, `ms-`, `me-`, `text-start`, `text-end`.
+    * **Must avoid:** `pl-`, `pr-`, `ml-`, `mr-`, `text-left`, `text-right`. (e.g., use `ps-2` instead of `pl-2`).
+2.  **Use Variants for Exceptions:** Only use the **`rtl:`** and **`ltr:`** variants for specific, non-standard cases where a direct logical class equivalent is unavailable or an explicit directional override is necessary (e.g., `ltr:border-l-2 rtl:border-r-2`).
+
+#### ✨ Iconography
+
+* **Icon Source:** All icons must be sourced exclusively from the **Lucide Icons** library.
+* **Implementation:** Use the official React component library for Lucide Icons.
+* **Prohibition:** Do not use other icon libraries, custom SVGs, or external icon fonts.
+
 ---
 
 ### Internationalization (i18n)
