@@ -6,10 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Play, Pause, RotateCcw } from "lucide-react"
 import { PlayersHeader } from "@/components/PlayersHeader"
+import { PlayerProfileModal } from "@/components/PlayerProfileModal"
 import { Button } from "@/components/ui/button"
 import { ReactionFeedbackModal } from "@/components/ReactionFeedbackModal"
 import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
-import { getCurrentCard, saveReactionFeedback } from "@/lib/gameService"
+import { getCurrentCard, saveReactionFeedback, loadSituationCards } from "@/lib/gameService"
 import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
 import type { User, GameState, ReactionType, SituationCard, ReactionFeedback } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -32,22 +33,29 @@ export default function ReactionPage() {
   const [isCompleted, setIsCompleted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const [allCards, setAllCards] = useState<SituationCard[]>([])
 
   useEffect(() => {
     const initializePage = async () => {
       try {
         setIsLoading(true)
 
-        // Load players
-        const users = await getAllUsers()
+        // Load players, game state, and cards in parallel
+        const [users, state, cards] = await Promise.all([
+          getAllUsers(),
+          getGameState(),
+          loadSituationCards(currentLanguage)
+        ])
+
         if (users.length === 0) {
           router.push("/players")
           return
         }
         setPlayers(users)
+        setAllCards(cards)
 
-        // Load game state
-        const state = await getGameState()
         if (!state) {
           router.push("/game")
           return
@@ -90,12 +98,15 @@ export default function ReactionPage() {
         setCurrentPlayer(player)
         setReactionType(playerReaction.reaction)
 
-        // Load current card
-        const card = await getCurrentCard(currentLanguage)
-        setCurrentCard(card)
+        // Use already loaded cards instead of loading again
+        if (state.currentCardId) {
+          const currentCardId = state.cardOrder[state.currentCardIndex]
+          const card = cards.find((c) => c.id === currentCardId) || null
+          setCurrentCard(card)
+        }
 
-        // Save checkpoint
-        await saveCheckpoint(`/game/reaction?playerId=${playerId}`)
+        // Save checkpoint (non-blocking)
+        saveCheckpoint(`/game/reaction?playerId=${playerId}`).catch(console.error)
       } catch (error) {
         console.error("Failed to initialize reaction page:", error)
         router.push("/game")
@@ -141,7 +152,38 @@ export default function ReactionPage() {
     // Get next player
     const nextIndex = currentIndex + 1
     if (nextIndex >= nonPassiveReactions.length) {
-      // All players done - calculate scores and go to results
+      // All players done - check if any assertive players need customCost selection
+      const cards = await loadSituationCards(currentLanguage)
+      const currentCardId = state.cardOrder[state.currentCardIndex]
+      const card = cards.find((c) => c.id === currentCardId)
+
+      if (card) {
+        const reactionData = card.individualGainAndCost.assertive
+        const hasCustomCost = reactionData?.customCost && reactionData.customCost !== 0
+
+        if (hasCustomCost) {
+          // Check if any assertive players need customCost selection
+          const assertiveReactions = nonPassiveReactions.filter(
+            (r) => r.reaction === "assertive"
+          )
+
+          const playersNeedingSelection = assertiveReactions.filter((reaction) => {
+            const existingFeedback = lastRoundReactions.feedback?.find(
+              (f) => f.playerId === reaction.playerId
+            )
+            return !existingFeedback?.customCostKpi
+          })
+
+          if (playersNeedingSelection.length > 0) {
+            // Redirect to custom cost selection page
+            const firstPlayerId = playersNeedingSelection[0].playerId
+            router.push(`/game/custom-cost?playerId=${firstPlayerId}`)
+            return
+          }
+        }
+      }
+
+      // No customCost or all selected - calculate scores and go to results
       await calculateAndSaveScores(state)
       router.push("/game/results")
       return
@@ -153,6 +195,17 @@ export default function ReactionPage() {
 
   const calculateAndSaveScores = async (state: GameState) => {
     try {
+      // Check if scores for this round already exist
+      const existingScores = state.scores || []
+      const existingRoundScore = existingScores.find(
+        (s) => s.round === state.currentRound
+      )
+      
+      if (existingRoundScore) {
+        // Scores already exist for this round, don't recalculate
+        return
+      }
+      
       const roundScores = await calculateRoundScores(state, currentLanguage, state.reactions?.[state.reactions.length - 1]?.feedback)
       await saveRoundScores(roundScores)
     } catch (error) {
@@ -262,6 +315,12 @@ export default function ReactionPage() {
         <PlayersHeader
           players={players}
           activePlayerId={gameState.activePlayerId}
+          currentRound={gameState.currentRound}
+          maxRounds={parseInt(process.env.NEXT_PUBLIC_MAX_ROUNDS || "8", 10)}
+          onPlayerClick={(player) => {
+            setSelectedPlayer(player)
+            setIsProfileModalOpen(true)
+          }}
         />
       </div>
 
@@ -360,6 +419,17 @@ export default function ReactionPage() {
           playerName={`${currentPlayer.firstName} ${currentPlayer.lastName}`}
           reactionType={reactionType}
           onSave={handleFeedbackSave}
+        />
+      )}
+
+      {/* Player Profile Modal */}
+      {selectedPlayer && (
+        <PlayerProfileModal
+          open={isProfileModalOpen}
+          onOpenChange={setIsProfileModalOpen}
+          player={selectedPlayer}
+          gameState={gameState}
+          cards={allCards}
         />
       )}
     </div>
