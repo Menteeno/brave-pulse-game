@@ -30,7 +30,7 @@ export default function LoadingPage() {
         }
 
         // Add a small delay for better UX
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        // await new Promise((resolve) => setTimeout(resolve, 500))
 
         // Redirect to players page if no checkpoint
         router.push("/players")
