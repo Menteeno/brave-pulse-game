@@ -4,19 +4,42 @@
         "title": "تاخیر مزمن در پرداخت حقوق",
         "scenario": "مدیر عامل (خواننده کارت) برای سومین ماه متوالی پرداخت حقوق را به بهانه های واهی (مشکل نقدینگی، انتظار برای سرمایه جدید) عقب می اندازد.",
         "emoji": "💰",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 3,
-            "description": "دفاع از حقوق مالی"
-        },
-        "individualCost": {
-            "relationshipHealth": -3,
-            "description": "مدیر عامل رابطه را از ریشه خراب می‌کند"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 3,
+                "selfRespectDescription": "دفاع از حقوق مالی",
+                "relationshipHealth": -3,
+                "relationshipHealthDescription": "مدیر عامل رابطه را از ریشه خراب می‌کند",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
         },
         "teamResults": {
             "allAssertive": 15,
+            "allAssertiveDescription": "منجر به شفافیت و بهبود مالی می‌شود",
             "onlyOneAssertive": -10,
-            "description": "منجر به شفافیت و بهبود مالی می‌شود"
+            "onlyOneAssertiveDescription": "فشار و اخراج فردی",
+            "perPersonAssertive": 0,
+            "perPersonAssertiveDescription": ""
         }
     },
     {
@@ -24,17 +47,42 @@
         "title": "جلسات عمومی بی‌پایان",
         "scenario": "جلسات عمومی شرکت بسیار طولانی شده‌اند، بدون دستور کار مشخص، و خسته‌کننده هستند. خواننده کارت (مدیر/رهبر جلسه) بدون توجه به زمان ادامه می‌دهد.",
         "emoji": "⏰",
-        "individualGain": {
-            "selfRespect": 1
-        },
-        "individualCost": {
-            "relationshipHealth": -1,
-            "mentalEnergy": -1,
-            "description": "تلاش برای اصلاح فرآیندها"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "بازی جراتمندانه",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "تلاش برای اصلاح فرآیندها",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "انرژی ذهنی",
+                "customCostDescription": "تلاش برای اصلاح فرآیندها"
+            }
         },
         "teamResults": {
-            "perPerson": 10,
-            "description": "مذاکره برای کاهش زمان و افزایش تمرکز در جلسات"
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "مذاکره برای کاهش زمان و افزایش تمرکز در جلسات"
         }
     },
     {
@@ -42,20 +90,42 @@
         "title": "پوشش دادن عملکرد ضعیف و وعده‌های خالی",
         "scenario": "همکاران در پروژه سستی می‌کنند و مدیر عامل (خواننده کارت) مدام از شما می‌خواهد کار آنها را پوشش دهید، با وعده \"ارتقای بزرگ\" یا \"افزایش حقوق\" در آینده.",
         "emoji": "📋",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 2,
-            "description": "روبرو شدن با فریب"
-        },
-        "individualCost": {
-            "relationshipHealth": -1,
-            "goalAchievement": -2,
-            "description": "مدیر عامل ممکن است شما را از پروژه‌های مهم حذف کند"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "روبرو شدن با فریب",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "مدیر عامل احساس می‌کند به چالش کشیده شده",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "مدیر عامل ممکن است شما را از پروژه‌های مهم حذف کند",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
         },
         "teamResults": {
-            "perPersonAssertive": -10,
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
             "onlyOneAssertive": 5,
-            "description": "افشای نقص در رهبری"
+            "onlyOneAssertiveDescription": "افشای نقص در رهبری",
+            "perPersonAssertive": -10,
+            "perPersonAssertiveDescription": "افشای نقص در رهبری"
         }
     },
     {
@@ -63,18 +133,42 @@
         "title": "راهنمایی کارآموز بدون حقوق",
         "scenario": "یک کارآموز جدید آمده است. مدیر عامل از شما می‌خواهد، با وجود حجم کاری بالا، آنها را راهنمایی کنید، بدون هیچ ذکری از جبران خسارت یا پرداخت اضافی.",
         "emoji": "👨‍🏫",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 1,
-            "description": "دفاع از حقوق مالی"
-        },
-        "individualCost": {
-            "goalAchievement": -2,
-            "description": "چون باید بخشی از زمان کاری خود را صرف مذاکره کنید"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "دفاع از حقوق مالی",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "چون باید بخشی از زمان کاری خود را صرف مذاکره کنید",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
         },
         "teamResults": {
-            "perPerson": 4,
-            "description": "تعیین مرزها منجر به تخصیص عادلانه‌تر منابع می‌شود"
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 4,
+            "perPersonAssertiveDescription": "تعیین مرزها منجر به تخصیص عادلانه‌تر منابع می‌شود"
         }
     },
     {
@@ -82,20 +176,773 @@
         "title": "بحران مستندات قدیمی",
         "scenario": "متوجه می‌شوید که مستندات کلیدی محصول (مانند APIها یا فرآیندهای راه‌اندازی) بسیار قدیمی یا ناقص هستند. این مشکل مدام کار شما را متوقف می‌کند و شما را مجبور می‌کند از همکاران سوال بپرسید. خواننده کارت (رهبر تیم) می‌گوید مستندات \"اولویت نیست\".",
         "emoji": "📚",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 2,
-            "description": "دفاع از کار مهندسی و زمان شخصی"
-        },
-        "individualCost": {
-            "goalAchievement": -1,
-            "personalTime": -2,
-            "description": "چون باید زمان اضافی صرف کنید تا خودتان تحلیل شکاف را انجام دهید"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "دفاع از کار مهندسی و زمان شخصی",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "کند شدن تولید ویژگی‌های جدید",
+                "customCost": -2,
+                "customCostTitle": "زمان شخصی/تعادل زندگی",
+                "customCostDescription": "چون باید زمان اضافی صرف کنید تا خودتان تحلیل شکاف را انجام دهید و یک برنامه برای حل مشکل مستندات بنویسید"
+            }
         },
         "teamResults": {
-            "perPerson": 10,
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
-            "description": "حل مشکل در ریشه آن در درازمدت"
+            "onlyOneAssertiveDescription": "نمی‌تواند مستندات را به تنهایی تکمیل کند",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "حل مشکل در ریشه آن در درازمدت"
+        }
+    },
+    {
+        "id": "card_6",
+        "title": "خیانت و شایعه‌پراکنی",
+        "scenario": "شنیده‌اید که همکار شما (خواننده کارت) که دوست صمیمی شماست، پشت سر شما به مدیر گفته که کارهایتان را دیر تحویل می‌دهید.",
+        "emoji": "🗡️",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "روبرو شدن با رفتار حیله‌گرانه",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "دوستی شما به شدت آسیب می‌بیند",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -3,
+            "perPersonAssertiveDescription": "جو تیم متشنج می‌شود"
+        }
+    },
+    {
+        "id": "card_7",
+        "title": "فشار برای تقلب در تست‌ها",
+        "scenario": "شما و همکارتان (خواننده کارت) روی یک ویژگی کار می‌کنید. آنها می‌گویند چون وقت نیست، باید برخی تست‌های مهم را رد کنید و به اشتباه آنها را Passed علامت بزنید.",
+        "emoji": "🧪",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "حفظ اصول حرفه‌ای",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "همکار احساس می‌کند که شما آنها را گزارش می‌دهید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 5,
+            "perPersonAssertiveDescription": "جلوگیری از انتشار محصول معیوب"
+        }
+    },
+    {
+        "id": "card_8",
+        "title": "درخواست پوشش تاخیر",
+        "scenario": "همکار شما (خواننده کارت) که بارها دیر کرده، از شما می‌خواهد در جلسه Standup امروز بگویید که روی بخش X کار کرده، در حالی که می‌دانید هیچ کاری نکرده است.",
+        "emoji": "⏳",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "دفاع از صداقت",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "تنش ناشی از رد درخواست یک دوست",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "انرژی ذهنی",
+                "customCostDescription": "تنش ناشی از رد درخواست یک دوست"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -2,
+            "perPersonAssertiveDescription": "کلمات صادقانه نشان‌دهنده تاخیر در پروژه است"
+        }
+    },
+    {
+        "id": "card_9",
+        "title": "عدم پاسخ به درخواست‌های کمک",
+        "scenario": "ساعت‌ها است که به همکارتان (خواننده کارت) پیام داده‌اید تا یک مشکل فنی را حل کند، اما پاسخ نمی‌دهد. حالا پروژه به دلیل عدم پاسخ او مسدود شده است.",
+        "emoji": "📱",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "دفاع از نیاز به همکاری",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "همکار احساس فشار می‌کند",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 6,
+            "perPersonAssertiveDescription": "اعلام نیاز به پاسخگویی و باز کردن مسیر پروژه"
+        }
+    },
+    {
+        "id": "card_10",
+        "title": "ریختن بار عاطفی",
+        "scenario": "همکار شما (خواننده کارت) مدام با شما تماس می‌گیرد یا Zoom می‌زند تا درباره مشکلات شخصی، استرس کاری و فشارهای روانی صحبت کند و این زمان و انرژی زیادی از کار شما می‌گیرد.",
+        "emoji": "💬",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "بازی جراتمندانه",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -2,
+                "goalAchievementDescription": "زمان و انرژی تلف شده و تخلیه انرژی",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 1,
+            "perPersonAssertiveDescription": "اگر جراتمندی با همدلی ترکیب شود، وضعیت را کمی بهبود می‌بخشد"
+        }
+    },
+    {
+        "id": "card_11",
+        "title": "دعوت به پوشاندن خطا",
+        "scenario": "همکار شما (خواننده کارت) اشتباه بزرگی مرتکب شده که اگر گزارش شود، هر دوی شما مجازات می‌شوید. آنها از شما می‌خواهند ساکت بمانید و وانمود کنید که هر دوی شما روی آن کار می‌کردید.",
+        "emoji": "🤐",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "دفاع از صداقت حرفه‌ای",
+                "relationshipHealth": -3,
+                "relationshipHealthDescription": "کاملاً اعتماد همکار را از بین می‌برد",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 12,
+            "perPersonAssertiveDescription": "حل مشکل در ریشه و حفظ اصول اخلاقی"
+        }
+    },
+    {
+        "id": "card_12",
+        "title": "کد نویسی اجباری شبانه",
+        "scenario": "یک باگ بحرانی در زمان قطعی سرور پیدا شده است. خواننده کارت (رهبر تیم) از شما می‌خواهد تمام شب بیدار بمانید تا باگ را برطرف کنید، در حالی که مشکل ناشی از عدم بررسی صحیح کد توسط خودشان بوده است.",
+        "emoji": "🌙",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "بازی جراتمندانه",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "نیاز به بازتعریف وظایف",
+                "customCost": -1,
+                "customCostTitle": "انرژی ذهنی/خانواده",
+                "customCostDescription": "چون باید تا صبح مبارزه کنید"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 0,
+            "perPersonAssertiveDescription": "این یک تصمیم فردی است و تاثیر مستقیمی بر رفع باگ ندارد"
+        }
+    },
+    {
+        "id": "card_13",
+        "title": "انتصاب ناخواسته به رهبری",
+        "scenario": "مدیر عامل (خواننده کارت) بدون مشورت، شما را به عنوان رهبر یک پروژه دشوار با مهلت‌های غیرممکن منصوب می‌کند. شما آمادگی یا زمان لازم برای آن را ندارید.",
+        "emoji": "👔",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "بازی جراتمندانه",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "مستقیماً رد کردن پیشنهاد مدیر عامل",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "جراتمندی نسبت به مدیر عامل واقع‌گرایی را به شرکت برمی‌گرداند"
+        }
+    },
+    {
+        "id": "card_14",
+        "title": "معیارهای عملکرد نامشخص",
+        "scenario": "شما می‌خواهید ارتقا بگیرید. خواننده کارت (مدیر منابع انسانی) می‌گوید که شما تمام اهداف را برآورده کرده‌اید، اما یک معیار جدید و مبهم \"نرم\" (مثل \"حضور اجتماعی بیشتر\") را بهانه می‌آورد.",
+        "emoji": "📊",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "دفاع محکم از عملکرد مستند شده",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "طرف مقابل احساس می‌کند گیر افتاده",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -5,
+            "perPersonAssertiveDescription": "چون بحث بر سر ارتقا تمرکز تیم را مختل می‌کند"
+        }
+    },
+    {
+        "id": "card_15",
+        "title": "انتخاب تکنولوژی اشتباه",
+        "scenario": "خواننده کارت (یک همکار ارشد تاثیرگذار) اصرار دارد که پروژه از یک فریمورک/تکنولوژی قدیمی و نامناسب استفاده کند که شما می‌دانید مشکلات زیادی ایجاد خواهد کرد.",
+        "emoji": "💻",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "بازی جراتمندانه",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "به چالش کشیدن اقتدار فنی همکار ارشد",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "انرژی ذهنی",
+                "customCostDescription": "نیاز به ارائه مستندات و داده برای اثبات نظر خود"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 12,
+            "perPersonAssertiveDescription": "نجات تیم از شکست فنی آینده"
+        }
+    },
+    {
+        "id": "card_16",
+        "title": "افزودن ویژگی بدون تست",
+        "scenario": "مدیر محصول (خواننده کارت) اصرار دارد که یک ویژگی مهم بدون گذراندن تست‌های کامل تضمین کیفیت (QA) منتشر شود، تا فروش بهتری داشته باشد.",
+        "emoji": "🚀",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "دفاع از اصول مهندسی",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "متوقف کردن انتشار به موقع محصول",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": -6,
+            "onlyOneAssertiveDescription": "اگر فقط یک نفر جراتمند باشد و انتشار متوقف شود",
+            "perPersonAssertive": 4,
+            "perPersonAssertiveDescription": "جلوگیری از فاجعه بزرگ"
+        }
+    },
+    {
+        "id": "card_17",
+        "title": "دزدی ایده معماری",
+        "scenario": "شما طراحی معماری یک سیستم جدید را به خواننده کارت (CTO) نشان داده‌اید. آنها همان ایده را در جلسه هیئت مدیره به نام خودشان ارائه می‌دهند.",
+        "emoji": "🏗️",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "روبرو شدن با دزدی فکری",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "از بین بردن رابطه با CTO",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -5,
+            "perPersonAssertiveDescription": "چون رسوایی دزدی فکری اعتبار تیم را خدشه‌دار می‌کند"
+        }
+    },
+    {
+        "id": "card_18",
+        "title": "تبعیض جنسیتی/نژادی خفیف",
+        "scenario": "خواننده کارت (یک همکار باتجربه) مدام جوک‌ها یا نظرات تبعیض‌آمیز یا توهین‌آمیز می‌گوید، اما همه در تیم آن را نادیده می‌گیرند.",
+        "emoji": "🚫",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "دفاع از ارزش‌های اخلاقی",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "به چالش کشیدن فرهنگ غالب گروه",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "تغییر فرهنگ تیم و ایجاد محیط امن"
+        }
+    },
+    {
+        "id": "card_19",
+        "title": "جلسه اجباری بعد از ساعات کاری",
+        "scenario": "رهبر تیم (خواننده کارت) یک جلسه فوری را ساعت 8 شب وقت شما (3 ساعت بعد از پایان رسمی کار) برای \"هماهنگی ضروری\" برنامه‌ریزی می‌کند.",
+        "emoji": "📅",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "حفظ مرزها",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "مدیر ناراحت است که پیشنهادش رد شده",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -5,
+            "perPersonAssertiveDescription": "هماهنگی ممکن است به تاخیر بیفتد"
+        }
+    },
+    {
+        "id": "card_20",
+        "title": "انتقاد از ابزارها",
+        "scenario": "شرکت از ابزارهای بسیار کند و نامناسب استفاده می‌کند (مثل یک IDE قدیمی یا سرور کند). یک همکار (خواننده کارت) می‌گوید: \"باید بسازیم\".",
+        "emoji": "🔧",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "بازی جراتمندانه",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "شما فرهنگ سازش تیم را به چالش می‌کشید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "انرژی ذهنی",
+                "customCostDescription": "نیاز به جمع‌آوری داده و ارائه راه‌حل"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "پیشنهاد ابزارهای بهتر که بهره‌وری را افزایش می‌دهد"
+        }
+    },
+    {
+        "id": "card_21",
+        "title": "اضافه کاری پنهان مزمن",
+        "scenario": "یک همکار (خواننده کارت) مدام در ساعات غیرکاری (مثل صبح شنبه) به شما پیام می‌دهد و انتظار دارد در دسترس باشید چون آنها همیشه در حال کار هستند. اگر در ساعات غیرکاری پاسخ ندهید، با طعنه یا کنایه در روزهای کاری عادی به شما یادآوری می‌کنند.",
+        "emoji": "📲",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "دفاع از زمان شخصی",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "همکار احساس می‌کند مورد حمله قرار گرفته و نیازهایش نادیده گرفته شده",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 0,
+            "perPersonAssertiveDescription": "این یک تصمیم کاملاً فردی است و تاثیر مستقیمی بر پروژه ندارد"
+        }
+    },
+    {
+        "id": "card_22",
+        "title": "اجبار به استفاده از ابزارهای نظارتی",
+        "scenario": "شرکت (خواننده کارت) اعلام می‌کند که برای \"افزایش بهره‌وری\"، از این هفته استفاده از نرم‌افزار ردیابی زمان و نظارت بر فعالیت دسکتاپ را اجباری می‌کند.",
+        "emoji": "👁️",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "چون نیازهای خود را نادیده گرفتید",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "چون از درگیری اجتناب کردید",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "چون به دیگران آسیب زدید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "چون با زور به خواسته خود رسیدید"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "دفاع از حریم خصوصی",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "مدیریت احساس می‌کند که شما به آنها اعتماد ندارید",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -7,
+            "perPersonAssertiveDescription": "مخالفت با تصمیم مدیریت"
         }
     }
 ]
