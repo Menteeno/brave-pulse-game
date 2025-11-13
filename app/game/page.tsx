@@ -7,6 +7,7 @@ import Image from "next/image"
 import { PlayersHeader } from "@/components/PlayersHeader"
 import { CardDrawer } from "@/components/CardDrawer"
 import { ReactionDrawer } from "@/components/ReactionDrawer"
+import { PlayerProfileModal } from "@/components/PlayerProfileModal"
 import { Button } from "@/components/ui/button"
 import { getAllUsers, getGameState } from "@/lib/dataService"
 import {
@@ -17,6 +18,7 @@ import {
     loadSituationCards,
     saveReactions,
 } from "@/lib/gameService"
+import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
 import type { User, SituationCard, GameState, ReactionType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import cartBackImage from "@/app/assets/images/cart-back.jpg"
@@ -35,22 +37,26 @@ export default function GamePage() {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false)
     const [isReactionDrawerOpen, setIsReactionDrawerOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+    const [existingReactions, setExistingReactions] = useState<Record<string, ReactionType>>({})
 
     useEffect(() => {
         const initializeGame = async () => {
             try {
                 setIsLoading(true)
 
-                // Load players
-                const users = await getAllUsers()
+                // Load players and cards in parallel
+                const [users, cards] = await Promise.all([
+                    getAllUsers(),
+                    loadSituationCards(currentLanguage)
+                ])
+
                 if (users.length === 0) {
                     router.push("/players")
                     return
                 }
                 setPlayers(users)
-
-                // Load cards based on current language
-                const cards = await loadSituationCards(currentLanguage)
                 setAllCards(cards)
 
                 // Check for existing game state
@@ -61,8 +67,20 @@ export default function GamePage() {
                     setSelectedCardId(existingState.selectedCardId)
 
                     if (existingState.isCardRevealed && existingState.currentCardId) {
-                        const card = await getCurrentCard(currentLanguage)
+                        // Use already loaded cards instead of loading again
+                        const currentCardId = existingState.cardOrder[existingState.currentCardIndex]
+                        const card = cards.find((c) => c.id === currentCardId) || null
                         setCurrentCard(card)
+                    }
+
+                    // Load existing reactions if any
+                    const lastRoundReactions = existingState.reactions?.[existingState.reactions.length - 1]
+                    if (lastRoundReactions && lastRoundReactions.round === existingState.currentRound) {
+                        const reactionsMap: Record<string, ReactionType> = {}
+                        lastRoundReactions.reactions.forEach((r) => {
+                            reactionsMap[r.playerId] = r.reaction
+                        })
+                        setExistingReactions(reactionsMap)
                     }
                 } else {
                     // Initialize new game
@@ -119,7 +137,7 @@ export default function GamePage() {
             const updatedState = await getGameState()
             if (updatedState) {
                 setGameState(updatedState)
-                
+
                 // Check if any player has non-passive reaction
                 const lastRoundReactions = updatedState.reactions?.[updatedState.reactions.length - 1]
                 const hasNonPassive = lastRoundReactions?.reactions.some(
@@ -130,12 +148,44 @@ export default function GamePage() {
                     // Navigate to thinking page
                     router.push("/game/thinking")
                 } else {
-                    // All passive - go to results
+                    // All passive - calculate scores and go to results
+                    try {
+                        const roundScores = await calculateRoundScores(
+                            updatedState,
+                            currentLanguage,
+                            updatedState.reactions?.[updatedState.reactions.length - 1]?.feedback
+                        )
+                        await saveRoundScores(roundScores)
+                    } catch (error) {
+                        console.error("Failed to calculate scores:", error)
+                    }
                     router.push("/game/results")
                 }
             }
         } catch (error) {
             console.error("Failed to save reactions:", error)
+        }
+    }
+
+    const handleReactionsContinue = async () => {
+        // Continue to next page based on game state
+        if (!gameState) return
+
+        const updatedState = await getGameState()
+        if (!updatedState) return
+
+        // Check if any player has non-passive reaction
+        const lastRoundReactions = updatedState.reactions?.[updatedState.reactions.length - 1]
+        const hasNonPassive = lastRoundReactions?.reactions.some(
+            (r) => r.reaction !== "passive"
+        )
+
+        if (hasNonPassive) {
+            // Navigate to thinking page
+            router.push("/game/thinking")
+        } else {
+            // All passive - go to results
+            router.push("/game/results")
         }
     }
 
@@ -166,6 +216,12 @@ export default function GamePage() {
                 <PlayersHeader
                     players={players}
                     activePlayerId={gameState.activePlayerId}
+                    currentRound={gameState.currentRound}
+                    maxRounds={parseInt(process.env.NEXT_PUBLIC_MAX_ROUNDS || "8", 10)}
+                    onPlayerClick={(player) => {
+                        setSelectedPlayer(player)
+                        setIsProfileModalOpen(true)
+                    }}
                 />
             </div>
 
@@ -309,7 +365,21 @@ export default function GamePage() {
                 open={isReactionDrawerOpen}
                 onOpenChange={setIsReactionDrawerOpen}
                 onSave={handleReactionsSave}
+                existingReactions={Object.keys(existingReactions).length > 0 ? existingReactions : undefined}
+                disabled={Object.keys(existingReactions).length > 0}
+                onContinue={handleReactionsContinue}
             />
+
+            {/* Player Profile Modal */}
+            {selectedPlayer && (
+                <PlayerProfileModal
+                    open={isProfileModalOpen}
+                    onOpenChange={setIsProfileModalOpen}
+                    player={selectedPlayer}
+                    gameState={gameState}
+                    cards={allCards}
+                />
+            )}
         </div>
     )
 }
