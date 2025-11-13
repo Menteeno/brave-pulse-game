@@ -8,6 +8,7 @@ import {
   ReactionType,
   PlayerReaction,
   RoundReactions,
+  ReactionFeedback,
 } from "./types"
 import { saveGameState, getGameState } from "./dataService"
 
@@ -66,6 +67,7 @@ export async function initializeGameState(
     players: playerIds,
     isCardRevealed: false,
     selectedCardId: null,
+    teamScore: 0,
     startedAt: new Date().toISOString(),
     lastUpdatedAt: new Date().toISOString(),
   }
@@ -184,5 +186,41 @@ export async function nextRound(): Promise<GameState | null> {
 
   await saveGameState(updatedState)
   return updatedState
+}
+
+/**
+ * Save feedback for a player's reaction
+ */
+export async function saveReactionFeedback(
+  playerId: string,
+  feedback: ReactionFeedback
+): Promise<void> {
+  const gameState = await getGameState()
+  if (!gameState || !gameState.reactions || gameState.reactions.length === 0) {
+    throw new Error("Game state or reactions not found")
+  }
+
+  const lastRoundReactions = gameState.reactions[gameState.reactions.length - 1]
+  const existingFeedback = lastRoundReactions.feedback || []
+  
+  // Remove existing feedback for this player if any
+  const filteredFeedback = existingFeedback.filter((f) => f.playerId !== playerId)
+  
+  // Add new feedback
+  const updatedFeedback = [...filteredFeedback, feedback]
+
+  const updatedReactions = [...gameState.reactions]
+  updatedReactions[updatedReactions.length - 1] = {
+    ...lastRoundReactions,
+    feedback: updatedFeedback,
+  }
+
+  const updatedState: GameState = {
+    ...gameState,
+    reactions: updatedReactions,
+    lastUpdatedAt: new Date().toISOString(),
+  }
+
+  await saveGameState(updatedState)
 }
 
