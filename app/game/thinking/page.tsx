@@ -3,11 +3,14 @@
 import React, { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import { Play, Pause, RotateCcw } from "lucide-react"
 import { PlayersHeader } from "@/components/PlayersHeader"
 import { Button } from "@/components/ui/button"
 import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
 import type { User, GameState } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import thinkGif from "@/app/assets/images/think.gif"
 
 export default function ThinkingPage() {
   const { t, i18n } = useTranslation("common")
@@ -64,7 +67,7 @@ export default function ThinkingPage() {
         }
 
         setGameState(state)
-        
+
         // Save checkpoint
         await saveCheckpoint("/game/thinking")
       } catch (error) {
@@ -122,6 +125,10 @@ export default function ThinkingPage() {
     setIsCompleted(false)
   }
 
+  const handlePause = () => {
+    setIsRunning(false)
+  }
+
   const handleReset = () => {
     setTimeLeft(60)
     setIsRunning(false)
@@ -168,10 +175,16 @@ export default function ThinkingPage() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center gap-6">
-        {/* Cat Illustration Placeholder */}
+        {/* Cat GIF */}
         <div className="flex items-center justify-center mb-4">
-          <div className="w-48 h-48 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-            <span className="text-8xl">🐱</span>
+          <div className="relative w-48 h-48">
+            <Image
+              src={thinkGif}
+              alt="Thinking cat"
+              fill
+              className="object-contain"
+              unoptimized
+            />
           </div>
         </div>
 
@@ -197,41 +210,32 @@ export default function ThinkingPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleReset}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className={cn(
+                "p-2 rounded-full transition-colors",
+                isRunning
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              )}
               disabled={isRunning}
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
+              <RotateCcw className="w-6 h-6" />
             </button>
             <div className="w-px h-6 bg-gray-300 dark:bg-gray-700" />
             <button
-              onClick={handleStart}
-              disabled={isRunning || isCompleted}
+              onClick={isRunning ? handlePause : handleStart}
+              disabled={isCompleted}
               className={cn(
                 "p-2 rounded-full transition-colors",
-                isRunning || isCompleted
+                isCompleted
                   ? "opacity-50 cursor-not-allowed"
                   : "hover:bg-gray-100 dark:hover:bg-gray-800"
               )}
             >
-              <svg
-                className="w-6 h-6"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              {isRunning ? (
+                <Pause className="w-6 h-6" />
+              ) : (
+                <Play className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
@@ -241,10 +245,9 @@ export default function ThinkingPage() {
       <div className="mt-auto pt-6">
         <Button
           onClick={() => {
-            router.push("/game/results")
+            router.push("/game/secret")
           }}
           className="bg-green-500 hover:bg-green-600 w-full"
-          disabled={!isCompleted}
         >
           {t("game.thinkingDone")}
         </Button>
