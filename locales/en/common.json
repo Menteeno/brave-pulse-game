@@ -1,0 +1,93 @@
+{
+  "header": {
+    "title": "Bravery Game",
+    "nav": {
+      "home": "Home"
+    }
+  },
+  "home": {
+    "title": "Welcome to Bravery Game",
+    "description": "This is a sample page demonstrating the setup with Next.js, shadcn/ui, and i18n.",
+    "button": "Get Started"
+  },
+  "players": {
+    "title": "Enter player information!",
+    "subtitle": "Enter your email to receive scores from this game on the Mentino console!",
+    "add": "Add",
+    "start": "Start Game",
+    "addTeammate": "Add Teammate",
+    "addTeammateSubtitle": "Enter the email your teammate registered with in Mentino here.",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "addTeammateButton": "Add Teammate",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editTeammate": "Edit Teammate",
+    "editTeammateSubtitle": "Update the teammate information.",
+    "updateTeammateButton": "Update Teammate",
+    "deleteConfirm": "Are you sure you want to delete this player?"
+  },
+  "gameIntro": {
+    "title": "How to Play",
+    "subtitle": "The Balance Game - Assertiveness Training",
+    "objective": "Game Objective",
+    "objectiveTeam": "Team Objective: Earn the highest Project Score compared to other teams",
+    "objectiveIndividual": "Individual Objective: Balance your 3 KPIs without burning out",
+    "kpis": "Your 3 Key Performance Indicators",
+    "kpiSelfRespect": "Self-Respect",
+    "kpiRelationship": "Relationship Health",
+    "kpiGoal": "Goal Achievement",
+    "kpiStart": "All KPIs start at 5 points",
+    "reactionCards": "Your Reaction Cards",
+    "cardPassive": "Passive (Gray)",
+    "cardPassiveBenefit": "Benefit: +1 Relationship Health",
+    "cardPassiveCost": "Cost: -1 Self-Respect",
+    "cardAggressive": "Aggressive (Orange)",
+    "cardAggressiveBenefit": "Benefit: +1 Goal Achievement",
+    "cardAggressiveCost": "Cost: -1 Relationship Health",
+    "cardAssertive": "Assertive (Green)",
+    "cardAssertiveBenefit": "Benefit: +1 Self-Respect +1 Goal Achievement",
+    "cardAssertiveCost": "Cost: -1 from any KPI you choose",
+    "burnout": "Burnout Mechanic",
+    "burnoutDescription": "If any of your 3 KPIs reaches zero, you experience Burnout. Your team loses -10 Project Score, and your KPI returns to 1.",
+    "gameFlow": "Game Flow - 8 Rounds",
+    "roundSituation": "1. Situation Phase: A challenging work scenario is revealed",
+    "roundDecision": "2. Decision Phase: Choose your reaction card (1 minute to think, 3 minutes to explain)",
+    "roundResolution": "3. Resolution Phase: Cards are revealed, individual and team scores are calculated",
+    "strategy": "Key Strategy",
+    "strategyDescription": "Learn to balance your individual needs (maintaining KPIs) and team needs (earning Project Score). Assertiveness is powerful but costly - choose wisely!",
+    "letsGo": "Let's Go"
+  },
+  "game": {
+    "loading": "Loading...",
+    "loadingStages": "Loading game stages...",
+    "selectCard": "Please select a card",
+    "cardBack": "Card back",
+    "viewCardDetails": "View Card Details",
+    "thisRoundIs": "This round is",
+    "turn": "'s turn",
+    "close": "Close",
+    "readCardAloud": "Read the text on this card aloud for others",
+    "understand": "I understand",
+    "clickCardHint": "Click on the card to display the card text.",
+    "cardRevealedInstruction": "After you read the game card, the other players must choose one of the reaction cards and place it face down in the middle of the table, and then all cards will be revealed simultaneously.",
+    "nextStep": "We revealed the cards",
+    "registerReactions": "Register Reactions",
+    "whoPlayedWhichReaction": "Who played which reaction card?",
+    "whatReactionDidShow": "What reaction did {{name}} show?",
+    "saveReactions": "Save Reactions",
+    "reaction": {
+      "passive": "Passive",
+      "assertive": "Assertive",
+      "aggressive": "Aggressive"
+    },
+    "thinkingTitle": "Okay, now one minute of thinking",
+    "thinkingDescription": "{{names}} were not passive, and now they must express their reaction to the topic within a maximum of 3 minutes. Before reacting, there is one minute to think and prepare their speech.",
+    "thinkingDone": "They have done their thinking",
+    "resultsTitle": "Results Stage",
+    "resultsDescription": "Game results will be displayed here."
+  }
+}
+
