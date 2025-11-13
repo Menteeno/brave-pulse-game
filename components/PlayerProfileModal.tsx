@@ -58,7 +58,8 @@ export function PlayerProfileModal({
       }
     }> = []
 
-    gameState.reactions.forEach((roundReaction, index) => {
+    // Match reactions with scores by round number
+    gameState.reactions.forEach((roundReaction) => {
       const playerReaction = roundReaction.reactions.find(
         (r) => r.playerId === player.id
       )
@@ -67,20 +68,25 @@ export function PlayerProfileModal({
       const card = cards.find((c) => c.id === roundReaction.cardId)
       if (!card) return
 
-      // Get score changes
-      const previousScores =
-        index > 0 && gameState.scores[index - 1]
-          ? gameState.scores[index - 1].playerScores.find(
-              (s) => s.playerId === player.id
-            )
-          : { selfRespect: 5, relationshipHealth: 5, goalAchievement: 5 }
+      // Find corresponding score entry by round number
+      const scoreEntry = gameState.scores.find(
+        (s) => s.round === roundReaction.round
+      )
+      if (!scoreEntry) return
 
-      const currentScores = gameState.scores[index]
-        ? gameState.scores[index].playerScores.find(
+      // Get previous scores (from previous round or initial)
+      const previousScoreEntry = gameState.scores.find(
+        (s) => s.round === roundReaction.round - 1
+      )
+      const previousScores = previousScoreEntry
+        ? previousScoreEntry.playerScores.find(
             (s) => s.playerId === player.id
-          )
-        : null
+          ) || { selfRespect: 5, relationshipHealth: 5, goalAchievement: 5 }
+        : { selfRespect: 5, relationshipHealth: 5, goalAchievement: 5 }
 
+      const currentScores = scoreEntry.playerScores.find(
+        (s) => s.playerId === player.id
+      )
       if (!currentScores) return
 
       const scoreChanges = {
@@ -104,8 +110,8 @@ export function PlayerProfileModal({
 
   const history = getPlayerHistory()
 
-  const formatScoreChange = (change: number): string => {
-    if (change === 0) return ""
+  const formatScoreChange = (change: number): string | false => {
+    if (change === 0) return false
     return change > 0 ? `+${change}` : `${change}`
   }
 
@@ -236,44 +242,21 @@ export function PlayerProfileModal({
                             {getReactionLabel(item.reaction)}
                           </p>
                         </div>
-                        <div className="flex gap-2 text-sm font-mono">
-                          {item.scoreChanges.selfRespect !== 0 && (
-                            <span
-                              className={cn(
-                                item.scoreChanges.selfRespect > 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              )}
-                            >
-                              {formatScoreChange(item.scoreChanges.selfRespect)}
-                            </span>
-                          )}
-                          {item.scoreChanges.relationshipHealth !== 0 && (
-                            <span
-                              className={cn(
-                                item.scoreChanges.relationshipHealth > 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              )}
-                            >
-                              {formatScoreChange(
+                        <div className="flex gap-1 text-sm font-mono text-foreground">
+                          {[
+                            item.scoreChanges.selfRespect !== 0 &&
+                              formatScoreChange(item.scoreChanges.selfRespect),
+                            item.scoreChanges.relationshipHealth !== 0 &&
+                              formatScoreChange(
                                 item.scoreChanges.relationshipHealth
-                              )}
-                            </span>
-                          )}
-                          {item.scoreChanges.goalAchievement !== 0 && (
-                            <span
-                              className={cn(
-                                item.scoreChanges.goalAchievement > 0
-                                  ? "text-green-600"
-                                  : "text-red-600"
-                              )}
-                            >
-                              {formatScoreChange(
+                              ),
+                            item.scoreChanges.goalAchievement !== 0 &&
+                              formatScoreChange(
                                 item.scoreChanges.goalAchievement
-                              )}
-                            </span>
-                          )}
+                              ),
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
                         </div>
                       </div>
                     </CardContent>
