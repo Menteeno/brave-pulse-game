@@ -40,9 +40,6 @@ export function ReactionFeedbackModal({
   const [goalAchievementFeedback, setGoalAchievementFeedback] = useState<
     "could" | "normal" | "couldnt" | null
   >(null)
-  const [customCostKpi, setCustomCostKpi] = useState<
-    "selfRespect" | "relationshipHealth" | "goalAchievement" | null
-  >(null)
 
   if (!card) return null
 
@@ -53,28 +50,25 @@ export function ReactionFeedbackModal({
   // Check if we need to ask about goal achievement based on the specific reaction type
   const needsGoalAchievementQuestion = reactionData.goalAchievement < 0
 
-  // Check if we need to ask about customCost
-  const needsCustomCostQuestion = reactionData.customCost !== undefined && reactionData.customCost !== 0
+  // Note: customCost selection is handled in a separate page (/game/custom-cost)
 
   const handleSave = () => {
     const feedback: ReactionFeedback = {
       playerId,
       relationshipHealthFeedback: relationshipHealthFeedback || undefined,
       goalAchievementFeedback: goalAchievementFeedback || undefined,
-      customCostKpi: customCostKpi || undefined,
+      // customCostKpi is handled separately in custom-cost page
     }
     onSave(feedback)
     onOpenChange(false)
     // Reset state
     setRelationshipHealthFeedback(null)
     setGoalAchievementFeedback(null)
-    setCustomCostKpi(null)
   }
 
   const canSave = () => {
     if (needsRelationshipHealthQuestion && !relationshipHealthFeedback) return false
     if (needsGoalAchievementQuestion && !goalAchievementFeedback) return false
-    if (needsCustomCostQuestion && !customCostKpi) return false
     return true
   }
 
@@ -179,58 +173,6 @@ export function ReactionFeedbackModal({
             </div>
           )}
 
-          {/* Custom Cost Question */}
-          {needsCustomCostQuestion && (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-foreground text-center">
-                {t("game.reactionFeedbackCustomCostQuestion", { 
-                  name: playerName,
-                  costTitle: reactionData.customCostTitle || "",
-                  costValue: Math.abs(reactionData.customCost || 0)
-                })}
-              </p>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => setCustomCostKpi("selfRespect")}
-                  className={cn(
-                    "px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium text-start",
-                    customCostKpi === "selfRespect"
-                      ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
-                  )}
-                >
-                  {t("game.kpiSelfRespect")}
-                </button>
-                <button
-                  onClick={() => setCustomCostKpi("relationshipHealth")}
-                  className={cn(
-                    "px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium text-start",
-                    customCostKpi === "relationshipHealth"
-                      ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
-                  )}
-                >
-                  {t("game.kpiRelationship")}
-                </button>
-                <button
-                  onClick={() => setCustomCostKpi("goalAchievement")}
-                  className={cn(
-                    "px-4 py-3 rounded-lg border-2 transition-all text-sm font-medium text-start",
-                    customCostKpi === "goalAchievement"
-                      ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
-                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
-                  )}
-                >
-                  {t("game.kpiGoal")}
-                </button>
-              </div>
-              {reactionData.customCostDescription && (
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  {reactionData.customCostDescription}
-                </p>
-              )}
-            </div>
-          )}
         </div>
 
         <DrawerFooter>
