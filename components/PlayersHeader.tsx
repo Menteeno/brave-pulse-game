@@ -10,12 +10,16 @@ interface PlayersHeaderProps {
   players: User[]
   activePlayerId: string | null
   onPlayerClick?: (player: User) => void
+  currentRound?: number
+  maxRounds?: number
 }
 
 export function PlayersHeader({
   players,
   activePlayerId,
   onPlayerClick,
+  currentRound,
+  maxRounds,
 }: PlayersHeaderProps) {
   const { t } = useTranslation("common")
   const [isExpanded, setIsExpanded] = useState(false)
@@ -53,38 +57,47 @@ export function PlayersHeader({
           </div>
         )}
 
-        {/* Avatar Stack - Collapsed State on End */}
-        <div className="flex items-center gap-0">
-          {players.map((player, index) => {
-            const avatarUrl = `https://unavatar.io/${player.email}`
-            const displayName = `${player.firstName} ${player.lastName}`
-            const isActive = player.id === activePlayerId
+        <div className="flex gap-2 text-start">
+          <div className="flex items-center gap-2">
+            {currentRound && maxRounds && (
+              <span className="text-xl font-bold font-mono text-muted-foreground">
+                {currentRound}/{maxRounds}
+              </span>
+            )}
+          </div>
+          {/* Avatar Stack - Collapsed State on End */}
+          <div className="flex items-center gap-0">
+            {players.map((player, index) => {
+              const avatarUrl = `https://unavatar.io/${player.email}`
+              const displayName = `${player.firstName} ${player.lastName}`
+              const isActive = player.id === activePlayerId
 
-            return (
-              <button
-                key={player.id}
-                onClick={handleAvatarClick}
-                className={cn(
-                  "relative transition-transform hover:scale-110",
-                  index > 0 && "-ms-3"
-                )}
-              >
-                <Avatar
+              return (
+                <button
+                  key={player.id}
+                  onClick={handleAvatarClick}
                   className={cn(
-                    "w-12 h-12 border-2 transition-all",
-                    isActive
-                      ? "border-blue-500 ring-2 ring-blue-200"
-                      : "border-white dark:border-gray-800"
+                    "relative transition-transform hover:scale-110",
+                    index > 0 && "-ms-3"
                   )}
                 >
-                  <AvatarImage src={avatarUrl} alt={displayName} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white text-sm font-semibold">
-                    {displayName.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            )
-          })}
+                  <Avatar
+                    className={cn(
+                      "w-12 h-12 border-2 transition-all",
+                      isActive
+                        ? "border-blue-500 ring-2 ring-blue-200"
+                        : "border-white dark:border-gray-800"
+                    )}
+                  >
+                    <AvatarImage src={avatarUrl} alt={displayName} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white text-sm font-semibold">
+                      {displayName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
