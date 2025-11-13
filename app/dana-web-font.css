@@ -1,0 +1,56 @@
+/**
+*
+*	Name:			DANA Fonts
+*	Version:			3.0
+*	Author:			Moslem Ebrahimi (moslemebrahimi.com)
+*	Created on:		nov 12, 2021
+*	Updated on:		nov 12, 2021
+*	Website:			http://fontiran.com
+*	Copyright:		Commercial/Proprietary Software
+--------------------------------------------------------------------------------------
+فونت دانا یک نرم افزار مالکیتی محسوب می شود. جهت آگاهی از قوانین استفاده از این فونت ها لطفا به وب سایت (فونت ایران دات کام) مراجعه نمایید
+--------------------------------------------------------------------------------------
+DANA fonts are considered a proprietary software. To gain information about the laws regarding the use of these fonts, please visit www.fontiran.com
+--------------------------------------------------------------------------------------
+This set of fonts are used in this project under the license: (FUBQ75WD)
+--------------------------------------------------------------------------------------
+*
+**/
+
+@font-face {
+    font-family: 'DanaVariableFont';
+    src: url('./fonts/dana/DanaVF.woff2') format('woff2 supports variations'),
+        url('./fonts/dana/DanaVF.woff2') format('woff2-variations'),
+        url('./fonts/dana/DanaVF.woff') format('woff');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: fallback;
+}
+
+@font-face {
+    font-family: dana;
+    src: url('./fonts/dana/staticfonts/Dana-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: fallback;
+}
+
+@font-face {
+    font-family: dana;
+    src: url('./fonts/dana/staticfonts/Dana-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: fallback;
+}
+
+.persian-number {
+    -moz-font-feature-settings: "ss02";
+    -webkit-font-feature-settings: "ss02";
+    font-feature-settings: "ss02";
+}
+
+.persian-number-fixed-width {
+    -moz-font-feature-settings: "ss03";
+    -webkit-font-feature-settings: "ss03";
+    font-feature-settings: "ss03";
+}
