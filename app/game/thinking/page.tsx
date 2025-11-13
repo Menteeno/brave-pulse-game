@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Play, Pause, RotateCcw } from "lucide-react"
 import { PlayersHeader } from "@/components/PlayersHeader"
+import { PlayerProfileModal } from "@/components/PlayerProfileModal"
 import { Button } from "@/components/ui/button"
 import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
-import type { User, GameState } from "@/lib/types"
+import { loadSituationCards } from "@/lib/gameService"
+import type { User, GameState, SituationCard } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import thinkGif from "@/app/assets/images/think.gif"
 
@@ -23,22 +25,29 @@ export default function ThinkingPage() {
   const [isRunning, setIsRunning] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const [allCards, setAllCards] = useState<SituationCard[]>([])
 
   useEffect(() => {
     const initializePage = async () => {
       try {
         setIsLoading(true)
 
-        // Load players
-        const users = await getAllUsers()
+        // Load players, game state, and cards in parallel
+        const [users, state, cards] = await Promise.all([
+          getAllUsers(),
+          getGameState(),
+          loadSituationCards(currentLanguage)
+        ])
+
         if (users.length === 0) {
           router.push("/players")
           return
         }
         setPlayers(users)
+        setAllCards(cards)
 
-        // Load game state
-        const state = await getGameState()
         if (!state) {
           router.push("/game")
           return
@@ -68,8 +77,8 @@ export default function ThinkingPage() {
 
         setGameState(state)
 
-        // Save checkpoint
-        await saveCheckpoint("/game/thinking")
+        // Save checkpoint (non-blocking)
+        saveCheckpoint("/game/thinking").catch(console.error)
       } catch (error) {
         console.error("Failed to initialize thinking page:", error)
         router.push("/game")
@@ -170,6 +179,12 @@ export default function ThinkingPage() {
         <PlayersHeader
           players={players}
           activePlayerId={gameState.activePlayerId}
+          currentRound={gameState.currentRound}
+          maxRounds={parseInt(process.env.NEXT_PUBLIC_MAX_ROUNDS || "8", 10)}
+          onPlayerClick={(player) => {
+            setSelectedPlayer(player)
+            setIsProfileModalOpen(true)
+          }}
         />
       </div>
 
