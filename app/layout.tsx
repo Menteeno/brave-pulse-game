@@ -3,6 +3,7 @@ import "./globals.css"
 import { I18nProvider } from "@/components/providers/i18n-provider"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { getDirection } from "@/lib/rtl"
+import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
   title: "Bravery Game",
@@ -21,14 +22,15 @@ export default function RootLayout({
   return (
     <html lang={defaultLanguage} dir={defaultDirection} suppressHydrationWarning>
       <body>
+        <NextTopLoader />
         <ThemeProvider>
-        <I18nProvider>
+          <I18nProvider>
             <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-950">
               <div className="w-full max-w-md mx-auto flex-1 flex flex-col bg-white dark:bg-gray-900">
-              <main className="flex-1">{children}</main>
+                <main className="flex-1">{children}</main>
+              </div>
             </div>
-          </div>
-        </I18nProvider>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>
