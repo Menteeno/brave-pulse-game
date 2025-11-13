@@ -9,9 +9,14 @@ import type { User } from "@/lib/types"
 interface PlayersHeaderProps {
   players: User[]
   activePlayerId: string | null
+  onPlayerClick?: (player: User) => void
 }
 
-export function PlayersHeader({ players, activePlayerId }: PlayersHeaderProps) {
+export function PlayersHeader({
+  players,
+  activePlayerId,
+  onPlayerClick,
+}: PlayersHeaderProps) {
   const { t } = useTranslation("common")
   const [isExpanded, setIsExpanded] = useState(false)
 
@@ -100,8 +105,12 @@ export function PlayersHeader({ players, activePlayerId }: PlayersHeaderProps) {
             const isActive = player.id === activePlayerId
 
             return (
-              <div
+              <button
                 key={player.id}
+                onClick={() => {
+                  onPlayerClick?.(player)
+                  setIsExpanded(false)
+                }}
                 className="flex flex-col items-center gap-2"
               >
                 <Avatar
@@ -125,7 +134,7 @@ export function PlayersHeader({ players, activePlayerId }: PlayersHeaderProps) {
                 >
                   {displayName}
                 </span>
-              </div>
+              </button>
             )
           })}
         </div>
@@ -138,8 +147,12 @@ export function PlayersHeader({ players, activePlayerId }: PlayersHeaderProps) {
               const isActive = player.id === activePlayerId
 
               return (
-                <div
+                <button
                   key={player.id}
+                  onClick={() => {
+                    onPlayerClick?.(player)
+                    setIsExpanded(false)
+                  }}
                   className="flex flex-col items-center gap-2"
                 >
                   <Avatar
@@ -163,7 +176,7 @@ export function PlayersHeader({ players, activePlayerId }: PlayersHeaderProps) {
                   >
                     {displayName}
                   </span>
-                </div>
+                </button>
               )
             })}
           </div>
