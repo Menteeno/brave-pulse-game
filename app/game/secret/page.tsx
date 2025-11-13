@@ -5,9 +5,11 @@ import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { PlayersHeader } from "@/components/PlayersHeader"
+import { PlayerProfileModal } from "@/components/PlayerProfileModal"
 import { Button } from "@/components/ui/button"
 import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
-import type { User, GameState } from "@/lib/types"
+import { loadSituationCards } from "@/lib/gameService"
+import type { User, GameState, SituationCard } from "@/lib/types"
 import secretGif from "@/app/assets/images/secret.gif"
 
 export default function SecretPage() {
@@ -18,22 +20,29 @@ export default function SecretPage() {
   const [players, setPlayers] = useState<User[]>([])
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const [allCards, setAllCards] = useState<SituationCard[]>([])
 
   useEffect(() => {
     const initializePage = async () => {
       try {
         setIsLoading(true)
 
-        // Load players
-        const users = await getAllUsers()
+        // Load players, game state, and cards in parallel
+        const [users, state, cards] = await Promise.all([
+          getAllUsers(),
+          getGameState(),
+          loadSituationCards(currentLanguage)
+        ])
+
         if (users.length === 0) {
           router.push("/players")
           return
         }
         setPlayers(users)
+        setAllCards(cards)
 
-        // Load game state
-        const state = await getGameState()
         if (!state) {
           router.push("/game")
           return
@@ -41,8 +50,8 @@ export default function SecretPage() {
 
         setGameState(state)
         
-        // Save checkpoint
-        await saveCheckpoint("/game/secret")
+        // Save checkpoint (non-blocking)
+        saveCheckpoint("/game/secret").catch(console.error)
       } catch (error) {
         console.error("Failed to initialize secret page:", error)
         router.push("/game")
@@ -83,6 +92,12 @@ export default function SecretPage() {
         <PlayersHeader
           players={players}
           activePlayerId={gameState.activePlayerId}
+          currentRound={gameState.currentRound}
+          maxRounds={parseInt(process.env.NEXT_PUBLIC_MAX_ROUNDS || "8", 10)}
+          onPlayerClick={(player) => {
+            setSelectedPlayer(player)
+            setIsProfileModalOpen(true)
+          }}
         />
       </div>
 
@@ -141,6 +156,17 @@ export default function SecretPage() {
           {t("game.secretContinue", { name: activePlayerName })}
         </Button>
       </div>
+
+      {/* Player Profile Modal */}
+      {selectedPlayer && gameState && (
+        <PlayerProfileModal
+          open={isProfileModalOpen}
+          onOpenChange={setIsProfileModalOpen}
+          player={selectedPlayer}
+          gameState={gameState}
+          cards={allCards}
+        />
+      )}
     </div>
   )
 }
