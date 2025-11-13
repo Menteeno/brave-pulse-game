@@ -196,6 +196,7 @@ export async function calculateRoundScores(
 
 /**
  * Save round scores to game state
+ * Only saves if scores for this round don't already exist
  */
 export async function saveRoundScores(roundScores: RoundScores): Promise<void> {
   const gameState = await getGameState()
@@ -204,6 +205,17 @@ export async function saveRoundScores(roundScores: RoundScores): Promise<void> {
   }
 
   const existingScores = gameState.scores || []
+  
+  // Check if scores for this round already exist
+  const existingRoundScore = existingScores.find(
+    (s) => s.round === roundScores.round
+  )
+  
+  if (existingRoundScore) {
+    // Scores already exist for this round, don't recalculate
+    return
+  }
+
   const updatedScores = [...existingScores, roundScores]
 
   const updatedState: GameState = {
