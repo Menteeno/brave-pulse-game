@@ -113,7 +113,17 @@
     "reactionFeedbackGood": "Good",
     "reactionFeedbackCouldnt": "Couldn't",
     "reactionFeedbackCould": "Could",
-    "reactionFeedbackSubmit": "Submit"
+    "reactionFeedbackSubmit": "Submit",
+    "playerProfileDescription": "Here we can see {{name}}'s profile and scores",
+    "history": "History",
+    "historyDescription": "A report of what you have done during the game.",
+    "noHistory": "No history recorded yet",
+    "understood": "Understood",
+    "customCostTitle": "{{name}}, please choose",
+    "customCostDescription": "{{costTitle}} ({{costValue}}) has been defined for you. {{costDescription}}",
+    "customCostQuestion": "Which of your parameters should this cost be applied to?",
+    "customCostSubmit": "Submit Selection",
+    "customCost": "Custom Cost"
   }
 }
 
