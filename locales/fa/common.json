@@ -68,6 +68,7 @@
     "viewCardDetails": "مشاهده جزئیات کارت",
     "thisRoundIs": "این دور نوبت",
     "turn": "هست",
+    "continue": "ادامه",
     "close": "بستن",
     "readCardAloud": "متن این کارت رو بلند برای بقیه بخون",
     "understand": "فهمیدم",
@@ -113,7 +114,16 @@
     "reactionFeedbackGood": "خوب",
     "reactionFeedbackCouldnt": "نتونست",
     "reactionFeedbackCould": "تونست",
-    "reactionFeedbackSubmit": "ثبت"
+    "reactionFeedbackSubmit": "ثبت",
+    "playerProfileDescription": "اینجا میتونیم پروفایل {{name}} و امتیاز هاش رو ببینیم",
+    "history": "سوابق",
+    "historyDescription": "گزارشی از آنچه در طول بازی انجام داده اید.",
+    "noHistory": "هنوز سوابقی ثبت نشده است",
+    "understood": "فهمیدم",
+    "customCostTitle": "{{name}}، لطفاً انتخاب کنید",
+    "customCostDescription": "{{costTitle}} ({{costValue}}) برای شما تعریف شده است. {{costDescription}}",
+    "customCostQuestion": "این هزینه روی کدام یک از پارامترهای شما اعمال شود؟",
+    "customCostSubmit": "ثبت انتخاب",
+    "customCost": "هزینه سفارشی"
   }
 }
-
