@@ -1,0 +1,101 @@
+[
+    {
+        "id": "card_1",
+        "title": "Chronic Salary Delays",
+        "scenario": "The CEO (card reader) delays salary payments for the third consecutive month with vague excuses (cash flow problems, waiting for new investment).",
+        "emoji": "💰",
+        "individualGain": {
+            "selfRespect": 1,
+            "additionalSelfRespect": 3,
+            "description": "Defending financial rights"
+        },
+        "individualCost": {
+            "relationshipHealth": -3,
+            "description": "The CEO ruins the relationship from the ground up"
+        },
+        "teamResults": {
+            "allAssertive": 15,
+            "onlyOneAssertive": -10,
+            "description": "Leads to transparency and financial improvement"
+        }
+    },
+    {
+        "id": "card_2",
+        "title": "Endless General Meetings",
+        "scenario": "The company's general meetings have become very long, with no clear agenda, and are exhausting. The card reader (Manager/Meeting Leader) continues without regard for the time.",
+        "emoji": "⏰",
+        "individualGain": {
+            "selfRespect": 1
+        },
+        "individualCost": {
+            "relationshipHealth": -1,
+            "mentalEnergy": -1,
+            "description": "Effort to correct processes"
+        },
+        "teamResults": {
+            "perPerson": 10,
+            "description": "Negotiating to reduce time and increase focus in meetings"
+        }
+    },
+    {
+        "id": "card_3",
+        "title": "Covering for Underperformance & Empty Promises",
+        "scenario": "Colleagues are slacking on the project, and the CEO (card reader) constantly asks you to cover their work, promising a \"big promotion\" or \"raise\" in the future.",
+        "emoji": "📋",
+        "individualGain": {
+            "selfRespect": 1,
+            "additionalSelfRespect": 2,
+            "description": "Confronting deception"
+        },
+        "individualCost": {
+            "relationshipHealth": -1,
+            "goalAchievement": -2,
+            "description": "The CEO might remove you from important projects"
+        },
+        "teamResults": {
+            "perPersonAssertive": -10,
+            "onlyOneAssertive": 5,
+            "description": "Exposing a flaw in leadership"
+        }
+    },
+    {
+        "id": "card_4",
+        "title": "Mentoring an Unpaid Intern",
+        "scenario": "A new intern has arrived. The CEO asks you, despite your high workload, to mentor them, without any mention of compensation or extra pay.",
+        "emoji": "👨‍🏫",
+        "individualGain": {
+            "selfRespect": 1,
+            "additionalSelfRespect": 1,
+            "description": "Defending financial rights"
+        },
+        "individualCost": {
+            "goalAchievement": -2,
+            "description": "Because you have to spend part of your work time negotiating"
+        },
+        "teamResults": {
+            "perPerson": 4,
+            "description": "Setting boundaries leads to fairer resource allocation"
+        }
+    },
+    {
+        "id": "card_5",
+        "title": "Old Documentation Crisis",
+        "scenario": "You realize that key product documents (like APIs or Onboarding processes) are very old or incomplete. This problem frequently stops your work and forces you to ask colleagues questions. The card reader (Team Lead) says documentation \"isn't a priority.\"",
+        "emoji": "📚",
+        "individualGain": {
+            "selfRespect": 1,
+            "additionalSelfRespect": 2,
+            "description": "Defending engineering work and personal time"
+        },
+        "individualCost": {
+            "goalAchievement": -1,
+            "personalTime": -2,
+            "description": "Because you have to put in extra time to do the Gap Analysis yourself"
+        },
+        "teamResults": {
+            "perPerson": 10,
+            "onlyOneAssertive": 0,
+            "description": "Solving the problem at its root in the long term"
+        }
+    }
+]
