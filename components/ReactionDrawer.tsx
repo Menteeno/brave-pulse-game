@@ -20,6 +20,9 @@ interface ReactionDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (reactions: Record<string, ReactionType>) => void
+  existingReactions?: Record<string, ReactionType>
+  disabled?: boolean
+  onContinue?: () => void
 }
 
 export function ReactionDrawer({
@@ -28,6 +31,9 @@ export function ReactionDrawer({
   open,
   onOpenChange,
   onSave,
+  existingReactions,
+  disabled = false,
+  onContinue,
 }: ReactionDrawerProps) {
   const { t } = useTranslation("common")
   const [reactions, setReactions] = useState<Record<string, ReactionType>>({})
@@ -35,12 +41,16 @@ export function ReactionDrawer({
   // Filter out active player - they don't play in this round
   const otherPlayers = players.filter((p) => p.id !== activePlayerId)
 
-  // Reset reactions when drawer opens
+  // Load existing reactions when drawer opens
   useEffect(() => {
     if (open) {
-      setReactions({})
+      if (existingReactions && Object.keys(existingReactions).length > 0) {
+        setReactions(existingReactions)
+      } else {
+        setReactions({})
+      }
     }
-  }, [open])
+  }, [open, existingReactions])
 
   const handleReactionSelect = (playerId: string, reaction: ReactionType) => {
     setReactions((prev) => ({
@@ -50,6 +60,15 @@ export function ReactionDrawer({
   }
 
   const handleSave = () => {
+    if (disabled) {
+      // If disabled and reactions exist, continue to next page
+      if (existingReactions && Object.keys(existingReactions).length > 0 && onContinue) {
+        onContinue()
+        onOpenChange(false)
+      }
+      return
+    }
+
     // Validate that all players have selected a reaction
     const allSelected = otherPlayers.every((player) => reactions[player.id])
     if (!allSelected) {
@@ -91,13 +110,16 @@ export function ReactionDrawer({
                   {reactionOptions.map((option) => (
                     <button
                       key={option.type}
-                      onClick={() => handleReactionSelect(player.id, option.type)}
+                      onClick={() => !disabled && handleReactionSelect(player.id, option.type)}
+                      disabled={disabled}
                       className={cn(
                         "flex-1 px-4 py-3 rounded-lg border-2 transition-all",
                         "text-sm font-medium",
+                        disabled && "opacity-50 cursor-not-allowed",
                         selectedReaction === option.type
                           ? "border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
-                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600",
+                        !disabled && selectedReaction !== option.type && "hover:border-gray-300 dark:hover:border-gray-600"
                       )}
                     >
                       {t(`game.reaction.${option.labelKey}`)}
@@ -112,10 +134,12 @@ export function ReactionDrawer({
         <DrawerFooter>
           <Button
             onClick={handleSave}
-            disabled={!otherPlayers.every((player) => reactions[player.id])}
+            disabled={!disabled && !otherPlayers.every((player) => reactions[player.id])}
             className="bg-green-500 hover:bg-green-600 w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {t("game.saveReactions")}
+            {disabled && existingReactions && Object.keys(existingReactions).length > 0
+              ? t("game.continue")
+              : t("game.saveReactions")}
           </Button>
         </DrawerFooter>
       </DrawerContent>
