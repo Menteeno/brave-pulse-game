@@ -4,19 +4,42 @@
         "title": "Chronic Salary Delays",
         "scenario": "The CEO (card reader) delays salary payments for the third consecutive month with vague excuses (cash flow problems, waiting for new investment).",
         "emoji": "💰",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 3,
-            "description": "Defending financial rights"
-        },
-        "individualCost": {
-            "relationshipHealth": -3,
-            "description": "The CEO ruins the relationship from the ground up"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 3,
+                "selfRespectDescription": "Defending financial rights",
+                "relationshipHealth": -3,
+                "relationshipHealthDescription": "The CEO ruins the relationship from the ground up",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
         },
         "teamResults": {
             "allAssertive": 15,
+            "allAssertiveDescription": "Leads to transparency and financial improvement",
             "onlyOneAssertive": -10,
-            "description": "Leads to transparency and financial improvement"
+            "onlyOneAssertiveDescription": "Pressure and individual firing",
+            "perPersonAssertive": 0,
+            "perPersonAssertiveDescription": ""
         }
     },
     {
@@ -24,17 +47,42 @@
         "title": "Endless General Meetings",
         "scenario": "The company's general meetings have become very long, with no clear agenda, and are exhausting. The card reader (Manager/Meeting Leader) continues without regard for the time.",
         "emoji": "⏰",
-        "individualGain": {
-            "selfRespect": 1
-        },
-        "individualCost": {
-            "relationshipHealth": -1,
-            "mentalEnergy": -1,
-            "description": "Effort to correct processes"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Playing assertive",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Effort to correct processes",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "Mental Energy",
+                "customCostDescription": "Effort to correct processes"
+            }
         },
         "teamResults": {
-            "perPerson": 10,
-            "description": "Negotiating to reduce time and increase focus in meetings"
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "Negotiating to reduce time and increase focus in meetings"
         }
     },
     {
@@ -42,20 +90,42 @@
         "title": "Covering for Underperformance & Empty Promises",
         "scenario": "Colleagues are slacking on the project, and the CEO (card reader) constantly asks you to cover their work, promising a \"big promotion\" or \"raise\" in the future.",
         "emoji": "📋",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 2,
-            "description": "Confronting deception"
-        },
-        "individualCost": {
-            "relationshipHealth": -1,
-            "goalAchievement": -2,
-            "description": "The CEO might remove you from important projects"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Confronting deception",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "The CEO feels challenged",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "The CEO might remove you from important projects",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
         },
         "teamResults": {
-            "perPersonAssertive": -10,
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
             "onlyOneAssertive": 5,
-            "description": "Exposing a flaw in leadership"
+            "onlyOneAssertiveDescription": "Exposing a flaw in leadership",
+            "perPersonAssertive": -10,
+            "perPersonAssertiveDescription": "Exposing a flaw in leadership"
         }
     },
     {
@@ -63,18 +133,42 @@
         "title": "Mentoring an Unpaid Intern",
         "scenario": "A new intern has arrived. The CEO asks you, despite your high workload, to mentor them, without any mention of compensation or extra pay.",
         "emoji": "👨‍🏫",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 1,
-            "description": "Defending financial rights"
-        },
-        "individualCost": {
-            "goalAchievement": -2,
-            "description": "Because you have to spend part of your work time negotiating"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Defending financial rights",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "Because you have to spend part of your work time negotiating",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
         },
         "teamResults": {
-            "perPerson": 4,
-            "description": "Setting boundaries leads to fairer resource allocation"
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 4,
+            "perPersonAssertiveDescription": "Setting boundaries leads to fairer resource allocation"
         }
     },
     {
@@ -82,20 +176,773 @@
         "title": "Old Documentation Crisis",
         "scenario": "You realize that key product documents (like APIs or Onboarding processes) are very old or incomplete. This problem frequently stops your work and forces you to ask colleagues questions. The card reader (Team Lead) says documentation \"isn't a priority.\"",
         "emoji": "📚",
-        "individualGain": {
-            "selfRespect": 1,
-            "additionalSelfRespect": 2,
-            "description": "Defending engineering work and personal time"
-        },
-        "individualCost": {
-            "goalAchievement": -1,
-            "personalTime": -2,
-            "description": "Because you have to put in extra time to do the Gap Analysis yourself"
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Defending engineering work and personal time",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "Slowing down new feature production",
+                "customCost": -2,
+                "customCostTitle": "Personal Time/Life Balance",
+                "customCostDescription": "Because you have to put in extra time to do the Gap Analysis yourself and write a plan to solve the documentation problem"
+            }
         },
         "teamResults": {
-            "perPerson": 10,
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
-            "description": "Solving the problem at its root in the long term"
+            "onlyOneAssertiveDescription": "Cannot complete documentation alone",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "Solving the problem at its root in the long term"
+        }
+    },
+    {
+        "id": "card_6",
+        "title": "Backstabbing and Gossip",
+        "scenario": "You've heard that your colleague (card reader), who is a close friend, told the manager behind your back that you deliver your work late.",
+        "emoji": "🗡️",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Confronting sly behavior",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "Your friendship is severely damaged",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -3,
+            "perPersonAssertiveDescription": "The team atmosphere becomes tense"
+        }
+    },
+    {
+        "id": "card_7",
+        "title": "Pressure to Cheat on Tests",
+        "scenario": "You and your colleague (card reader) are working on a feature. They say because there's no time, you have to skip some critical tests and falsely mark them as Passed.",
+        "emoji": "🧪",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Maintaining professional principles",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "The colleague feels like you are reporting them",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 5,
+            "perPersonAssertiveDescription": "Preventing the release of a broken product"
+        }
+    },
+    {
+        "id": "card_8",
+        "title": "Request to Cover a Delay",
+        "scenario": "Your colleague (card reader), who has been late many times, asks you to say in the Standup meeting today that they worked on part X, even though you know they did nothing.",
+        "emoji": "⏳",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Defending honesty",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Tension from refusing a friend's request",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "Mental Energy",
+                "customCostDescription": "Tension from refusing a friend's request"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -2,
+            "perPersonAssertiveDescription": "Honest words point to a delay in the project"
+        }
+    },
+    {
+        "id": "card_9",
+        "title": "Not Responding to Help Requests",
+        "scenario": "You have been messaging your colleague (card reader) for hours to fix a technical problem, but they don't respond. Now the project is blocked because of their non-response.",
+        "emoji": "📱",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Defending the need for collaboration",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "The colleague feels pressured",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 6,
+            "perPersonAssertiveDescription": "Declaring the need for responsiveness and unblocking the project"
+        }
+    },
+    {
+        "id": "card_10",
+        "title": "Emotional Dumping",
+        "scenario": "Your colleague (card reader) constantly calls or Zooms you to talk about their personal problems, work stress, and psychological pressures, and this takes a lot of time and energy from your work.",
+        "emoji": "💬",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Playing assertive",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -2,
+                "goalAchievementDescription": "Wasted time and energy drain",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 1,
+            "perPersonAssertiveDescription": "If assertiveness is combined with empathy, it slightly improves the situation"
+        }
+    },
+    {
+        "id": "card_11",
+        "title": "Invitation to a Cover-Up",
+        "scenario": "Your colleague (card reader) has made a huge mistake that, if reported, will get you both punished. They ask you to keep quiet and pretend you were both working on it.",
+        "emoji": "🤐",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Defending professional honesty",
+                "relationshipHealth": -3,
+                "relationshipHealthDescription": "Completely destroying the colleague's trust",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 12,
+            "perPersonAssertiveDescription": "Root-cause problem solving and maintaining ethical principles"
+        }
+    },
+    {
+        "id": "card_12",
+        "title": "Mandatory Late-Night Coding",
+        "scenario": "A critical bug is found during server downtime. The card reader (Team Lead) asks you to stay up all night to fix the bug, even though the problem was caused by their own failure to review the code properly.",
+        "emoji": "🌙",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Playing assertive",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "Need to redefine tasks",
+                "customCost": -1,
+                "customCostTitle": "Mental Energy/Family",
+                "customCostDescription": "Because you have to struggle until morning"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 0,
+            "perPersonAssertiveDescription": "It's an individual decision and has no direct impact on fixing the bug"
+        }
+    },
+    {
+        "id": "card_13",
+        "title": "Unwanted Leadership Appointment",
+        "scenario": "The CEO (card reader) appoints you, without consultation, as the leader of a difficult project with impossible deadlines. You don't have the readiness or the time for it.",
+        "emoji": "👔",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Playing assertive",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "Directly refusing the CEO's offer",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "Assertiveness towards the CEO brings realism back to the company"
+        }
+    },
+    {
+        "id": "card_14",
+        "title": "Unclear Performance Metrics",
+        "scenario": "You want a promotion. The card reader (HR Manager) says you have met all the goals, but brings up a new, vague \"soft\" metric (like \"more social presence\") as an excuse.",
+        "emoji": "📊",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Firmly defending documented performance",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "The other person feels caught",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -5,
+            "perPersonAssertiveDescription": "Because arguing over a promotion disrupts the team's focus"
+        }
+    },
+    {
+        "id": "card_15",
+        "title": "Choosing the Wrong Technology",
+        "scenario": "The card reader (an influential senior colleague) insists that the project use an old, unsuitable framework/technology that you know will cause many problems.",
+        "emoji": "💻",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Playing assertive",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Challenging the senior colleague's technical authority",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "Mental Energy",
+                "customCostDescription": "Need to provide documentation and data to prove your point"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 12,
+            "perPersonAssertiveDescription": "Saving the team from future technical failure"
+        }
+    },
+    {
+        "id": "card_16",
+        "title": "Adding a Feature Without Tests",
+        "scenario": "The Product Manager (card reader) insists that a major feature be released without passing full Quality Assurance (QA) tests, in order to get better sales.",
+        "emoji": "🚀",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Defending engineering principles",
+                "relationshipHealth": 0,
+                "relationshipHealthDescription": "",
+                "goalAchievement": -1,
+                "goalAchievementDescription": "Stopping the timely release of the product",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": -6,
+            "onlyOneAssertiveDescription": "If just 1 person is assertive and the release is stopped",
+            "perPersonAssertive": 4,
+            "perPersonAssertiveDescription": "Preventing a major disaster"
+        }
+    },
+    {
+        "id": "card_17",
+        "title": "Architecture Idea Theft",
+        "scenario": "You showed your design for a new system's architecture to the card reader (CTO). They present the same idea in a board meeting under their own name.",
+        "emoji": "🏗️",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Confronting intellectual theft",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "Destroying the relationship with the CTO",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -5,
+            "perPersonAssertiveDescription": "Because the scandal of intellectual theft damages the team's reputation"
+        }
+    },
+    {
+        "id": "card_18",
+        "title": "Mild Sexist/Racist Discrimination",
+        "scenario": "The card reader (an experienced colleague) frequently tells jokes or makes comments that are discriminatory or offensive, but everyone on the team ignores it.",
+        "emoji": "🚫",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Defending ethical values",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "Challenging the dominant group culture",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "Changing the team culture and creating a safe environment"
+        }
+    },
+    {
+        "id": "card_19",
+        "title": "Mandatory After-Hours Meeting",
+        "scenario": "The Team Lead (card reader) schedules an urgent meeting at 8 PM your time (3 hours after official work ends) for \"essential coordination.\"",
+        "emoji": "📅",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Maintaining boundaries",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "The manager is annoyed their suggestion was rejected",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -5,
+            "perPersonAssertiveDescription": "Coordination might be delayed"
+        }
+    },
+    {
+        "id": "card_20",
+        "title": "Criticism of Tools",
+        "scenario": "The company uses very slow and unsuitable tools (like an old IDE or a slow server). A colleague (card reader) says, \"We just have to make do.\"",
+        "emoji": "🔧",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 1,
+                "selfRespectDescription": "Playing assertive",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "You challenge the team's culture of compromise",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": -1,
+                "customCostTitle": "Mental Energy",
+                "customCostDescription": "Need to gather data and present a solution"
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 10,
+            "perPersonAssertiveDescription": "Proposing better tools that increase productivity"
+        }
+    },
+    {
+        "id": "card_21",
+        "title": "Chronic Hidden Overtime",
+        "scenario": "A colleague (card reader) frequently messages you during non-work hours (like Saturday morning) and expects you to be available because they are always working. If you don't respond during non-work hours, they remind you with sarcasm or snide remarks in person on regular workdays.",
+        "emoji": "📲",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Defending personal time",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "The colleague feels attacked and that their needs are ignored",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": 0,
+            "perPersonAssertiveDescription": "This is a completely individual decision and has no direct impact on the project"
+        }
+    },
+    {
+        "id": "card_22",
+        "title": "Forcing the Use of Monitoring Tools",
+        "scenario": "The company (card reader) announces that to \"increase productivity,\" it is mandating time-tracking and desktop activity monitoring software starting this week.",
+        "emoji": "👁️",
+        "individualGainAndCost": {
+            "passive": {
+                "selfRespect": -1,
+                "selfRespectDescription": "Because you ignored your own needs",
+                "relationshipHealth": 1,
+                "relationshipHealthDescription": "Because you avoided conflict",
+                "goalAchievement": 0,
+                "goalAchievementDescription": ""
+            },
+            "aggressive": {
+                "selfRespect": 0,
+                "selfRespectDescription": "",
+                "relationshipHealth": -1,
+                "relationshipHealthDescription": "Because you harmed others",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "Because you got what you wanted by force"
+            },
+            "assertive": {
+                "selfRespect": 2,
+                "selfRespectDescription": "Defending privacy",
+                "relationshipHealth": -2,
+                "relationshipHealthDescription": "Management feels you don't trust them",
+                "goalAchievement": 1,
+                "goalAchievementDescription": "",
+                "customCost": 0,
+                "customCostTitle": "",
+                "customCostDescription": ""
+            }
+        },
+        "teamResults": {
+            "allAssertive": 0,
+            "allAssertiveDescription": "",
+            "onlyOneAssertive": 0,
+            "onlyOneAssertiveDescription": "",
+            "perPersonAssertive": -7,
+            "perPersonAssertiveDescription": "Opposing a management decision"
         }
     }
 ]
