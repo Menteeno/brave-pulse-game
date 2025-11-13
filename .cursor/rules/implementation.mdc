@@ -1,0 +1,77 @@
+---
+alwaysApply: true
+---
+
+## 📜 Project Rules and Guidelines
+
+---
+
+### Project Architecture
+
+The project uses **Next.js** (App Router + TypeScript) with **Tailwind CSS** and **shadcn/ui**. All code must follow best practices for modular, reusable, and maintainable structure.
+
+#### ✅ Folder Structure:
+
+* **/app** → routes and pages (Next.js App Router)
+* **/components** → shared reusable UI components
+* **/lib** → utilities and helper functions
+* **/locales** → translation files (e.g. `fa/common.json`, `en/common.json`)
+* **/styles** → global styles if needed
+
+---
+
+### UI Components & Styling
+
+* Always use **shadcn/ui** components (e.g., **Button**, **Input**, **Drawer**, **Card**, **Sheet**, etc.) whenever possible.
+* Avoid using raw HTML elements for UI that already have shadcn equivalents.
+* All new visual or interactive elements must be implemented as reusable components inside `/components`.
+* Design is **mobile-first**. On desktop, content should appear centered and constrained to mobile width.
+* The primary color theme must be **green-500** from Tailwind.
+* Maintain consistent spacing, padding, and rounded corners (use shadcn defaults).
+
+---
+
+### Internationalization (i18n)
+
+* All visible text must use **translation keys** instead of hardcoded strings.
+* Use `next-i18next` for localization.
+* **Example usage**: `t("players.add_button")`, not `"افزودن"`.
+* Place translations in `/locales/fa/common.json` and `/locales/en/common.json`.
+* Do not mix literal text and keys inside components.
+* Do not use direct text in components at all, always use keys and translations.
+
+---
+
+### Code Style & Best Practices
+
+* Always use **TypeScript** and **strong typing** for props and data structures.
+* Components must be small, reusable, and self-contained.
+* Use **React hooks properly**; avoid prop drilling.
+* Prefer **composition** over repetition.
+* Use functional naming conventions (PascalCase for components, camelCase for helpers).
+* Follow **accessibility** best practices (e.g., `aria-labels`, focus states).
+
+---
+
+### Navigation & Behavior
+
+* All pages must be **mobile-first** and optimized for **performance**.
+* Use `next/navigation` for page transitions.
+* Reusable UI actions (Drawers, Modals, Buttons) must come from the `components` directory.
+* Each user interaction (like adding a player) should trigger a clear, visible UI response.
+
+---
+## 🧑‍🎨 Avatar Rule
+
+All user or player avatar placeholders must be generated dynamically using the following service:
+`https://unavatar.io/{email_address}`
+
+### Requirements:
+
+* Always use **unavatar.io** for avatar sources.
+* The avatar must be **circular** in appearance (`rounded-full`).
+* Prefer **shadcn/ui** components for displaying avatars.
+* If the email address is missing or invalid, use a generic fallback URL such as `https://unavatar.io/placeholder`.
+* Do **not** use local static assets or external libraries for avatars unless explicitly required.
+
+---
