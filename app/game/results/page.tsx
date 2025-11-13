@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation"
 import { Heart, Plus, Minus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PlayersHeader } from "@/components/PlayersHeader"
+import { PlayerProfileModal } from "@/components/PlayerProfileModal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
-import { getCurrentCard } from "@/lib/gameService"
+import { getCurrentCard, loadSituationCards } from "@/lib/gameService"
 import { nextRound } from "@/lib/gameService"
+import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
 import type { User, GameState, RoundScores, SituationCard, ReactionType } from "@/lib/types"
 
 export default function ResultsPage() {
@@ -23,23 +25,30 @@ export default function ResultsPage() {
   const [roundScores, setRoundScores] = useState<RoundScores | null>(null)
   const [previousScores, setPreviousScores] = useState<Array<{ playerId: string; selfRespect: number; relationshipHealth: number; goalAchievement: number }>>([])
   const [currentCard, setCurrentCard] = useState<SituationCard | null>(null)
+  const [allCards, setAllCards] = useState<SituationCard[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
 
   useEffect(() => {
     const initializePage = async () => {
       try {
         setIsLoading(true)
 
-        // Load players
-        const users = await getAllUsers()
+        // Load players, game state, and cards in parallel
+        const [users, state, cards] = await Promise.all([
+          getAllUsers(),
+          getGameState(),
+          loadSituationCards(currentLanguage)
+        ])
+
         if (users.length === 0) {
           router.push("/players")
           return
         }
         setPlayers(users)
+        setAllCards(cards)
 
-        // Load game state
-        const state = await getGameState()
         if (!state) {
           router.push("/game")
           return
@@ -47,19 +56,49 @@ export default function ResultsPage() {
 
         setGameState(state)
 
+        // Check if scores for current round exist, if not calculate them
+        const lastRoundReactions = state.reactions?.[state.reactions.length - 1]
+        let finalState = state
+        if (lastRoundReactions) {
+          const existingScores = state.scores || []
+          const existingRoundScore = existingScores.find(
+            (s) => s.round === lastRoundReactions.round
+          )
+
+          if (!existingRoundScore) {
+            // Scores don't exist for this round, calculate them
+            try {
+              const roundScores = await calculateRoundScores(
+                state,
+                currentLanguage,
+                lastRoundReactions.feedback
+              )
+              await saveRoundScores(roundScores)
+              // Reload game state to get updated scores
+              const updatedState = await getGameState()
+              if (updatedState) {
+                setGameState(updatedState)
+                finalState = updatedState
+              }
+            } catch (error) {
+              console.error("Failed to calculate scores:", error)
+            }
+          }
+        }
+
         // Get last round scores
-        if (state.scores && state.scores.length > 0) {
-          const lastRoundScores = state.scores[state.scores.length - 1]
+        if (finalState.scores && finalState.scores.length > 0) {
+          const lastRoundScores = finalState.scores[finalState.scores.length - 1]
           setRoundScores(lastRoundScores)
 
           // Get previous scores (before this round)
-          if (state.scores.length > 1) {
-            const previousRoundScores = state.scores[state.scores.length - 2]
+          if (finalState.scores.length > 1) {
+            const previousRoundScores = finalState.scores[finalState.scores.length - 2]
             setPreviousScores(previousRoundScores.playerScores)
           } else {
             // First round - use initial scores (5 for each)
             setPreviousScores(
-              state.players.map((playerId) => ({
+              finalState.players.map((playerId) => ({
                 playerId,
                 selfRespect: 5,
                 relationshipHealth: 5,
@@ -69,14 +108,15 @@ export default function ResultsPage() {
           }
         }
 
-        // Load current card
-        if (state.currentCardId) {
-          const card = await getCurrentCard(currentLanguage)
+        // Use already loaded cards instead of loading again
+        if (finalState.currentCardId) {
+          const currentCardId = finalState.cardOrder[finalState.currentCardIndex]
+          const card = cards.find((c) => c.id === currentCardId) || null
           setCurrentCard(card)
         }
 
-        // Save checkpoint
-        await saveCheckpoint("/game/results")
+        // Save checkpoint (non-blocking)
+        saveCheckpoint("/game/results").catch(console.error)
       } catch (error) {
         console.error("Failed to initialize results page:", error)
         router.push("/game")
@@ -131,7 +171,7 @@ export default function ResultsPage() {
   ): string => {
     if (!currentCard || !reaction) return ""
     const reactionData = currentCard.individualGainAndCost[reaction]
-    
+
     if (kpi === "selfRespect") {
       return reactionData.selfRespectDescription || ""
     } else if (kpi === "relationshipHealth") {
@@ -171,6 +211,12 @@ export default function ResultsPage() {
         <PlayersHeader
           players={players}
           activePlayerId={gameState.activePlayerId}
+          currentRound={gameState.currentRound}
+          maxRounds={parseInt(process.env.NEXT_PUBLIC_MAX_ROUNDS || "8", 10)}
+          onPlayerClick={(player) => {
+            setSelectedPlayer(player)
+            setIsProfileModalOpen(true)
+          }}
         />
       </div>
 
@@ -188,243 +234,259 @@ export default function ResultsPage() {
         {/* Player Results */}
         <div className="space-y-6">
           {players
-            .filter((player) => player.id !== gameState.activePlayerId)
+            .filter((player) => {
+              // Always exclude active player - they are the game facilitator, not a player
+              return player.id !== gameState.activePlayerId
+            })
             .map((player) => {
-            const playerScores = roundScores.playerScores.find(
-              (s) => s.playerId === player.id
-            )
-            if (!playerScores) return null
+              const playerScores = roundScores.playerScores.find(
+                (s) => s.playerId === player.id
+              )
+              if (!playerScores) return null
 
-            const reaction = getPlayerReaction(player.id)
-            const selfRespectChange = getScoreChange(player.id, "selfRespect")
-            const relationshipHealthChange = getScoreChange(
-              player.id,
-              "relationshipHealth"
-            )
-            const goalAchievementChange = getScoreChange(
-              player.id,
-              "goalAchievement"
-            )
+              const reaction = getPlayerReaction(player.id)
+              const selfRespectChange = getScoreChange(player.id, "selfRespect")
+              const relationshipHealthChange = getScoreChange(
+                player.id,
+                "relationshipHealth"
+              )
+              const goalAchievementChange = getScoreChange(
+                player.id,
+                "goalAchievement"
+              )
 
-            const gains: Array<{
-              kpi: string
-              change: number
-              description: string
-            }> = []
-            const costs: Array<{
-              kpi: string
-              change: number
-              description: string
-            }> = []
+              const gains: Array<{
+                kpi: string
+                change: number
+                description: string
+              }> = []
+              const costs: Array<{
+                kpi: string
+                change: number
+                description: string
+              }> = []
 
-            if (selfRespectChange > 0) {
-              gains.push({
-                kpi: t("gameIntro.kpiSelfRespect"),
-                change: selfRespectChange,
-                description: getKpiDescription(player.id, "selfRespect", reaction),
-              })
-            } else if (selfRespectChange < 0) {
-              costs.push({
-                kpi: t("gameIntro.kpiSelfRespect"),
-                change: selfRespectChange,
-                description: getKpiDescription(player.id, "selfRespect", reaction),
-              })
-            }
+              if (selfRespectChange > 0) {
+                gains.push({
+                  kpi: t("gameIntro.kpiSelfRespect"),
+                  change: selfRespectChange,
+                  description: getKpiDescription(player.id, "selfRespect", reaction),
+                })
+              } else if (selfRespectChange < 0) {
+                costs.push({
+                  kpi: t("gameIntro.kpiSelfRespect"),
+                  change: selfRespectChange,
+                  description: getKpiDescription(player.id, "selfRespect", reaction),
+                })
+              }
 
-            if (relationshipHealthChange > 0) {
-              gains.push({
-                kpi: t("gameIntro.kpiRelationship"),
-                change: relationshipHealthChange,
-                description: getKpiDescription(
-                  player.id,
-                  "relationshipHealth",
-                  reaction
-                ),
-              })
-            } else if (relationshipHealthChange < 0) {
-              costs.push({
-                kpi: t("gameIntro.kpiRelationship"),
-                change: relationshipHealthChange,
-                description: getKpiDescription(
-                  player.id,
-                  "relationshipHealth",
-                  reaction
-                ),
-              })
-            }
+              if (relationshipHealthChange > 0) {
+                gains.push({
+                  kpi: t("gameIntro.kpiRelationship"),
+                  change: relationshipHealthChange,
+                  description: getKpiDescription(
+                    player.id,
+                    "relationshipHealth",
+                    reaction
+                  ),
+                })
+              } else if (relationshipHealthChange < 0) {
+                costs.push({
+                  kpi: t("gameIntro.kpiRelationship"),
+                  change: relationshipHealthChange,
+                  description: getKpiDescription(
+                    player.id,
+                    "relationshipHealth",
+                    reaction
+                  ),
+                })
+              }
 
-            if (goalAchievementChange > 0) {
-              gains.push({
-                kpi: t("gameIntro.kpiGoal"),
-                change: goalAchievementChange,
-                description: getKpiDescription(
-                  player.id,
-                  "goalAchievement",
-                  reaction
-                ),
-              })
-            } else if (goalAchievementChange < 0) {
-              costs.push({
-                kpi: t("gameIntro.kpiGoal"),
-                change: goalAchievementChange,
-                description: getKpiDescription(
-                  player.id,
-                  "goalAchievement",
-                  reaction
-                ),
-              })
-            }
+              if (goalAchievementChange > 0) {
+                gains.push({
+                  kpi: t("gameIntro.kpiGoal"),
+                  change: goalAchievementChange,
+                  description: getKpiDescription(
+                    player.id,
+                    "goalAchievement",
+                    reaction
+                  ),
+                })
+              } else if (goalAchievementChange < 0) {
+                costs.push({
+                  kpi: t("gameIntro.kpiGoal"),
+                  change: goalAchievementChange,
+                  description: getKpiDescription(
+                    player.id,
+                    "goalAchievement",
+                    reaction
+                  ),
+                })
+              }
 
-            // Check for customCost
-            if (currentCard && reaction) {
-              const reactionData = currentCard.individualGainAndCost[reaction]
-              if (reactionData.customCost && reactionData.customCost !== 0) {
-                const feedback = roundScores.feedback?.find(f => f.playerId === player.id)
-                if (feedback?.customCostKpi) {
-                  const customCostChange = reactionData.customCost
-                  const customCostKpi = feedback.customCostKpi
-                  
-                  if (customCostChange > 0) {
-                    gains.push({
-                      kpi: reactionData.customCostTitle || t("game.customCost"),
-                      change: customCostChange,
+              // Check for customCost - add it to the selected KPI instead of separate entry
+              let customCostInfo: {
+                kpi: "selfRespect" | "relationshipHealth" | "goalAchievement"
+                change: number
+                title: string
+                description: string
+              } | null = null
+
+              if (currentCard && reaction) {
+                const reactionData = currentCard.individualGainAndCost[reaction]
+                if (reactionData.customCost && reactionData.customCost !== 0) {
+                  const feedback = roundScores.feedback?.find(f => f.playerId === player.id)
+                  if (feedback?.customCostKpi) {
+                    customCostInfo = {
+                      kpi: feedback.customCostKpi,
+                      change: reactionData.customCost,
+                      title: reactionData.customCostTitle || t("game.customCost"),
                       description: reactionData.customCostDescription || "",
-                    })
-                  } else if (customCostChange < 0) {
-                    costs.push({
-                      kpi: reactionData.customCostTitle || t("game.customCost"),
-                      change: customCostChange,
-                      description: reactionData.customCostDescription || "",
-                    })
+                    }
                   }
                 }
               }
-            }
 
-            if (gains.length === 0 && costs.length === 0) return null
+              if (gains.length === 0 && costs.length === 0) return null
 
-            return (
-              <div key={player.id} className="space-y-4">
-                <div className="flex flex-col gap-3 mb-2">
-                  <h2 className="text-lg font-semibold">
-                    {t("game.playerResults", {
-                      name: `${player.firstName} ${player.lastName}`,
-                    })}
-                  </h2>
-                  
-                  {/* KPI Score Boxes */}
-                  <div className="flex gap-2 justify-start">
-                    <div
-                      className={cn(
-                        "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                        playerScores.selfRespect < 3
-                          ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                          : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                      )}
-                    >
-                      <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                        {t("gameIntro.kpiSelfRespect")}
-                      </span>
-                      <span className={cn(
-                        "text-2xl font-bold",
-                        playerScores.selfRespect < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
-                      )}>
-                        {playerScores.selfRespect}
-                      </span>
-                    </div>
-                    <div
-                      className={cn(
-                        "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                        playerScores.relationshipHealth < 3
-                          ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                          : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                      )}
-                    >
-                      <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                        {t("gameIntro.kpiRelationship")}
-                      </span>
-                      <span className={cn(
-                        "text-2xl font-bold",
-                        playerScores.relationshipHealth < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
-                      )}>
-                        {playerScores.relationshipHealth}
-                      </span>
-                    </div>
-                    <div
-                      className={cn(
-                        "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                        playerScores.goalAchievement < 3
-                          ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                          : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                      )}
-                    >
-                      <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                        {t("gameIntro.kpiGoal")}
-                      </span>
-                      <span className={cn(
-                        "text-2xl font-bold",
-                        playerScores.goalAchievement < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
-                      )}>
-                        {playerScores.goalAchievement}
-                      </span>
+              return (
+                <div key={player.id} className="space-y-4">
+                  <div className="flex flex-col gap-3 mb-2">
+                    <h2 className="text-lg font-semibold">
+                      {t("game.playerResults", {
+                        name: `${player.firstName} ${player.lastName}`,
+                      })}
+                    </h2>
+
+                    {/* KPI Score Boxes */}
+                    <div className="flex gap-2 justify-start">
+                      <div
+                        className={cn(
+                          "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
+                          playerScores.selfRespect < 3
+                            ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                            : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+                        )}
+                      >
+                        <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                          {t("gameIntro.kpiSelfRespect")}
+                        </span>
+                        <span className={cn(
+                          "text-2xl font-bold",
+                          playerScores.selfRespect < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
+                        )}>
+                          {playerScores.selfRespect}
+                        </span>
+                      </div>
+                      <div
+                        className={cn(
+                          "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
+                          playerScores.relationshipHealth < 3
+                            ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                            : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+                        )}
+                      >
+                        <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                          {t("gameIntro.kpiRelationship")}
+                        </span>
+                        <span className={cn(
+                          "text-2xl font-bold",
+                          playerScores.relationshipHealth < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
+                        )}>
+                          {playerScores.relationshipHealth}
+                        </span>
+                      </div>
+                      <div
+                        className={cn(
+                          "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
+                          playerScores.goalAchievement < 3
+                            ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                            : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+                        )}
+                      >
+                        <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                          {t("gameIntro.kpiGoal")}
+                        </span>
+                        <span className={cn(
+                          "text-2xl font-bold",
+                          playerScores.goalAchievement < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
+                        )}>
+                          {playerScores.goalAchievement}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Gains */}
+                  {gains.length > 0 && (
+                    <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Heart className="w-5 h-5 text-green-600 dark:text-green-400" />
+                          <Plus className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          {t("game.individualProfit")}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {gains.map((gain, index) => {
+                          const isCustomCostKpi = customCostInfo && customCostInfo.kpi === gain.kpi && customCostInfo.change > 0
+                          return (
+                            <div key={index} className="text-sm">
+                              <p className="font-medium">{gain.kpi}</p>
+                              {gain.description && (
+                                <p className="text-muted-foreground mt-1">
+                                  {t("game.reason")}: {gain.description}
+                                </p>
+                              )}
+                              {isCustomCostKpi && customCostInfo && (
+                                <p className="text-muted-foreground mt-1 text-xs italic">
+                                  {customCostInfo.title}: {customCostInfo.change > 0 ? '+' : ''}{customCostInfo.change} - {customCostInfo.description}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Costs */}
+                  {costs.length > 0 && (
+                    <Card className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Heart className="w-5 h-5 text-red-600 dark:text-red-400" />
+                          <Minus className="w-4 h-4 text-red-600 dark:text-red-400" />
+                          {t("game.individualCost")}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {costs.map((cost, index) => {
+                          const isCustomCostKpi = customCostInfo && customCostInfo.kpi === cost.kpi && customCostInfo.change < 0
+                          return (
+                            <div key={index} className="text-sm">
+                              <p className="font-medium">
+                                {Math.abs(cost.change)}- {cost.kpi}
+                              </p>
+                              {cost.description && (
+                                <p className="text-muted-foreground mt-1">
+                                  {t("game.reason")}: {cost.description}
+                                </p>
+                              )}
+                              {isCustomCostKpi && customCostInfo && (
+                                <p className="text-muted-foreground mt-1 text-xs italic">
+                                  {customCostInfo.title}: {customCostInfo.change} - {customCostInfo.description}
+                                </p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
-
-                {/* Gains */}
-                {gains.length > 0 && (
-                  <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Heart className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        <Plus className="w-4 h-4 text-green-600 dark:text-green-400" />
-                        {t("game.individualProfit")}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {gains.map((gain, index) => (
-                        <div key={index} className="text-sm">
-                          <p className="font-medium">{gain.kpi}</p>
-                          {gain.description && (
-                            <p className="text-muted-foreground mt-1">
-                              {t("game.reason")}: {gain.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Costs */}
-                {costs.length > 0 && (
-                  <Card className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Heart className="w-5 h-5 text-red-600 dark:text-red-400" />
-                        <Minus className="w-4 h-4 text-red-600 dark:text-red-400" />
-                        {t("game.individualCost")}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {costs.map((cost, index) => (
-                        <div key={index} className="text-sm">
-                          <p className="font-medium">
-                            {Math.abs(cost.change)}- {cost.kpi}
-                          </p>
-                          {cost.description && (
-                            <p className="text-muted-foreground mt-1">
-                              {t("game.reason")}: {cost.description}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            )
-          })}
+              )
+            })}
         </div>
 
         {/* Team Scores */}
@@ -443,7 +505,7 @@ export default function ResultsPage() {
                   const changeText = teamScoreChange >= 0
                     ? `+${teamScoreChange}`
                     : `${teamScoreChange}`
-                  
+
                   return (
                     <>
                       <p className="text-2xl font-bold">
@@ -521,6 +583,17 @@ export default function ResultsPage() {
           {t("game.nextRound")}
         </Button>
       </div>
+
+      {/* Player Profile Modal */}
+      {selectedPlayer && (
+        <PlayerProfileModal
+          open={isProfileModalOpen}
+          onOpenChange={setIsProfileModalOpen}
+          player={selectedPlayer}
+          gameState={gameState}
+          cards={allCards}
+        />
+      )}
     </div>
   )
 }
