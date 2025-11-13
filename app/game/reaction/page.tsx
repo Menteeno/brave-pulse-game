@@ -1,0 +1,368 @@
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
+import { useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
+import { Play, Pause, RotateCcw } from "lucide-react"
+import { PlayersHeader } from "@/components/PlayersHeader"
+import { Button } from "@/components/ui/button"
+import { ReactionFeedbackModal } from "@/components/ReactionFeedbackModal"
+import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
+import { getCurrentCard, saveReactionFeedback } from "@/lib/gameService"
+import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
+import type { User, GameState, ReactionType, SituationCard, ReactionFeedback } from "@/lib/types"
+import { cn } from "@/lib/utils"
+import braveGif from "@/app/assets/images/brave.gif"
+import savageGif from "@/app/assets/images/savage.gif"
+
+export default function ReactionPage() {
+  const { t, i18n } = useTranslation("common")
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentLanguage = i18n.language || "en"
+
+  const [players, setPlayers] = useState<User[]>([])
+  const [gameState, setGameState] = useState<GameState | null>(null)
+  const [currentPlayer, setCurrentPlayer] = useState<User | null>(null)
+  const [reactionType, setReactionType] = useState<ReactionType | null>(null)
+  const [currentCard, setCurrentCard] = useState<SituationCard | null>(null)
+  const [timeLeft, setTimeLeft] = useState(180) // 3 minutes in seconds
+  const [isRunning, setIsRunning] = useState(false)
+  const [isCompleted, setIsCompleted] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+
+  useEffect(() => {
+    const initializePage = async () => {
+      try {
+        setIsLoading(true)
+
+        // Load players
+        const users = await getAllUsers()
+        if (users.length === 0) {
+          router.push("/players")
+          return
+        }
+        setPlayers(users)
+
+        // Load game state
+        const state = await getGameState()
+        if (!state) {
+          router.push("/game")
+          return
+        }
+
+        setGameState(state)
+
+        // Get player ID from URL
+        const playerId = searchParams.get("playerId")
+        if (!playerId) {
+          // No player ID - redirect to get first non-passive player
+          await redirectToNextPlayer(state, users)
+          return
+        }
+
+        // Find player
+        const player = users.find((p) => p.id === playerId)
+        if (!player) {
+          router.push("/game/results")
+          return
+        }
+
+        // Get player's reaction from last round
+        const lastRoundReactions = state.reactions?.[state.reactions.length - 1]
+        if (!lastRoundReactions) {
+          router.push("/game/results")
+          return
+        }
+
+        const playerReaction = lastRoundReactions.reactions.find(
+          (r) => r.playerId === playerId
+        )
+
+        if (!playerReaction || playerReaction.reaction === "passive") {
+          // Player has passive reaction or no reaction - skip to next
+          await redirectToNextPlayer(state, users, playerId)
+          return
+        }
+
+        setCurrentPlayer(player)
+        setReactionType(playerReaction.reaction)
+
+        // Load current card
+        const card = await getCurrentCard(currentLanguage)
+        setCurrentCard(card)
+
+        // Save checkpoint
+        await saveCheckpoint(`/game/reaction?playerId=${playerId}`)
+      } catch (error) {
+        console.error("Failed to initialize reaction page:", error)
+        router.push("/game")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    initializePage()
+  }, [router, searchParams])
+
+  const redirectToNextPlayer = async (
+    state: GameState,
+    users: User[],
+    currentPlayerId?: string
+  ) => {
+    const lastRoundReactions = state.reactions?.[state.reactions.length - 1]
+    if (!lastRoundReactions) {
+      router.push("/game/results")
+      return
+    }
+
+    // Get all non-passive players
+    const nonPassiveReactions = lastRoundReactions.reactions.filter(
+      (r) => r.reaction !== "passive"
+    )
+
+    if (nonPassiveReactions.length === 0) {
+      // All passive - calculate scores and go to results
+      await calculateAndSaveScores(state)
+      router.push("/game/results")
+      return
+    }
+
+    // Find current player index
+    let currentIndex = -1
+    if (currentPlayerId) {
+      currentIndex = nonPassiveReactions.findIndex(
+        (r) => r.playerId === currentPlayerId
+      )
+    }
+
+    // Get next player
+    const nextIndex = currentIndex + 1
+    if (nextIndex >= nonPassiveReactions.length) {
+      // All players done - calculate scores and go to results
+      await calculateAndSaveScores(state)
+      router.push("/game/results")
+      return
+    }
+
+    const nextPlayerId = nonPassiveReactions[nextIndex].playerId
+    router.push(`/game/reaction?playerId=${nextPlayerId}`)
+  }
+
+  const calculateAndSaveScores = async (state: GameState) => {
+    try {
+      const roundScores = await calculateRoundScores(state, currentLanguage, state.reactions?.[state.reactions.length - 1]?.feedback)
+      await saveRoundScores(roundScores)
+    } catch (error) {
+      console.error("Failed to calculate scores:", error)
+    }
+  }
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null
+
+    if (isRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setIsRunning(false)
+            setIsCompleted(true)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval)
+      }
+    }
+  }, [isRunning, timeLeft])
+
+  const handleStart = () => {
+    setIsRunning(true)
+    setIsCompleted(false)
+  }
+
+  const handlePause = () => {
+    setIsRunning(false)
+  }
+
+  const handleReset = () => {
+    setTimeLeft(180)
+    setIsRunning(false)
+    setIsCompleted(false)
+  }
+
+  const handleFinish = async () => {
+    if (!gameState || !currentPlayer || !reactionType) return
+
+    // For assertive reactions only, show feedback modal
+    if (reactionType === "assertive") {
+      setShowFeedbackModal(true)
+    } else {
+      // For aggressive or passive reactions, move to next player
+      await redirectToNextPlayer(gameState, players, currentPlayer.id)
+    }
+  }
+
+  const handleFeedbackSave = async (feedback: ReactionFeedback) => {
+    // Save feedback to game state
+    try {
+      await saveReactionFeedback(currentPlayer!.id, feedback)
+      // Update game state
+      const updatedState = await getGameState()
+      if (updatedState) {
+        setGameState(updatedState)
+      }
+    } catch (error) {
+      console.error("Failed to save feedback:", error)
+    }
+    
+    // Proceed to next player
+    const updatedState = await getGameState()
+    if (!updatedState || !currentPlayer) return
+    await redirectToNextPlayer(updatedState, players, currentPlayer.id)
+  }
+
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen px-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-lg font-medium text-muted-foreground">
+            {t("game.loading")}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!gameState || !currentPlayer || !reactionType) {
+    return null
+  }
+
+  const playerName = `${currentPlayer.firstName} ${currentPlayer.lastName}`
+  const reactionGif = reactionType === "assertive" ? braveGif : savageGif
+
+  return (
+    <div className="flex flex-col min-h-screen px-4 py-6">
+      {/* Header with Players */}
+      <div className="mb-6">
+        <PlayersHeader
+          players={players}
+          activePlayerId={gameState.activePlayerId}
+        />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+        {/* Reaction GIF */}
+        <div className="flex items-center justify-center mb-4">
+          <div className="relative w-48 h-48">
+            <Image
+              src={reactionGif}
+              alt={reactionType === "assertive" ? "Brave" : "Savage"}
+              fill
+              className="object-contain"
+              unoptimized
+            />
+          </div>
+        </div>
+
+        {/* Title */}
+        <h1 className="text-2xl font-bold text-center">
+          {t("game.reactionTitle", { name: playerName })}
+        </h1>
+
+        {/* Description */}
+        <p className="text-sm text-muted-foreground text-center leading-relaxed max-w-md px-4">
+          {t("game.reactionDescription", {
+            name: playerName,
+            reaction: t(`game.reaction.${reactionType}`),
+            activePlayer: gameState.activePlayerId
+              ? players.find((p) => p.id === gameState.activePlayerId)
+                  ?.firstName || ""
+              : "",
+          })}
+        </p>
+
+        {/* Timer */}
+        <div className="flex flex-col items-center gap-4 mt-4">
+          <div className="flex items-center gap-2">
+            <div className="text-4xl font-mono font-bold tabular-nums">
+              {formatTime(timeLeft)}
+            </div>
+          </div>
+
+          {/* Timer Controls */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleReset}
+              className={cn(
+                "p-2 rounded-full transition-colors",
+                isRunning
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              )}
+              disabled={isRunning}
+            >
+              <RotateCcw className="w-6 h-6" />
+            </button>
+            <div className="w-px h-6 bg-gray-300 dark:bg-gray-700" />
+            <button
+              onClick={isRunning ? handlePause : handleStart}
+              disabled={isCompleted}
+              className={cn(
+                "p-2 rounded-full transition-colors",
+                isCompleted
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              )}
+            >
+              {isRunning ? (
+                <Pause className="w-6 h-6" />
+              ) : (
+                <Play className="w-6 h-6" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Button */}
+      <div className="mt-auto pt-6">
+        <Button
+          onClick={handleFinish}
+          className="bg-green-500 hover:bg-green-600 w-full"
+        >
+          {t("game.reactionFinished")}
+        </Button>
+      </div>
+
+      {/* Feedback Modal - Only for assertive reactions */}
+      {currentPlayer && reactionType === "assertive" && (
+        <ReactionFeedbackModal
+          open={showFeedbackModal}
+          onOpenChange={setShowFeedbackModal}
+          card={currentCard}
+          playerId={currentPlayer.id}
+          playerName={`${currentPlayer.firstName} ${currentPlayer.lastName}`}
+          reactionType={reactionType}
+          onSave={handleFeedbackSave}
+        />
+      )}
+    </div>
+  )
+}
+
