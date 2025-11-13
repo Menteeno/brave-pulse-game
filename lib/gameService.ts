@@ -125,6 +125,7 @@ export async function selectCard(cardId: string): Promise<void> {
 
 /**
  * Save reactions for current round
+ * Only saves if reactions for this round don't already exist
  */
 export async function saveReactions(
   reactions: Record<string, ReactionType>
@@ -132,6 +133,17 @@ export async function saveReactions(
   const gameState = await getGameState()
   if (!gameState || !gameState.currentCardId) {
     throw new Error("Game state or current card not found")
+  }
+
+  // Check if reactions for this round already exist
+  const existingReactions = gameState.reactions || []
+  const existingRoundReaction = existingReactions.find(
+    (r) => r.round === gameState.currentRound
+  )
+
+  if (existingRoundReaction) {
+    // Reactions already exist for this round, don't save again
+    return
   }
 
   // Convert reactions object to PlayerReaction array
@@ -148,8 +160,6 @@ export async function saveReactions(
     reactions: playerReactions,
   }
 
-  // Add to existing reactions array or create new one
-  const existingReactions = gameState.reactions || []
   const updatedReactions = [...existingReactions, roundReaction]
 
   const updatedState: GameState = {
@@ -203,11 +213,18 @@ export async function saveReactionFeedback(
   const lastRoundReactions = gameState.reactions[gameState.reactions.length - 1]
   const existingFeedback = lastRoundReactions.feedback || []
   
-  // Remove existing feedback for this player if any
-  const filteredFeedback = existingFeedback.filter((f) => f.playerId !== playerId)
+  // Check if feedback for this player already exists
+  const existingPlayerFeedback = existingFeedback.find(
+    (f) => f.playerId === playerId
+  )
+  
+  if (existingPlayerFeedback) {
+    // Feedback already exists for this player, don't save again
+    return
+  }
   
   // Add new feedback
-  const updatedFeedback = [...filteredFeedback, feedback]
+  const updatedFeedback = [...existingFeedback, feedback]
 
   const updatedReactions = [...gameState.reactions]
   updatedReactions[updatedReactions.length - 1] = {
