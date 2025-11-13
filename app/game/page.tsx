@@ -1,0 +1,316 @@
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
+import { useRouter } from "next/navigation"
+import Image from "next/image"
+import { PlayersHeader } from "@/components/PlayersHeader"
+import { CardDrawer } from "@/components/CardDrawer"
+import { ReactionDrawer } from "@/components/ReactionDrawer"
+import { Button } from "@/components/ui/button"
+import { getAllUsers, getGameState } from "@/lib/dataService"
+import {
+    initializeGameState,
+    getCurrentCard,
+    revealCard,
+    selectCard,
+    loadSituationCards,
+    saveReactions,
+} from "@/lib/gameService"
+import type { User, SituationCard, GameState, ReactionType } from "@/lib/types"
+import { cn } from "@/lib/utils"
+import cartBackImage from "@/app/assets/images/cart-back.jpg"
+
+export default function GamePage() {
+    const { t, i18n } = useTranslation("common")
+    const router = useRouter()
+    const currentLanguage = i18n.language || "en" // Used for loading cards based on language
+
+    const [players, setPlayers] = useState<User[]>([])
+    const [gameState, setGameState] = useState<GameState | null>(null)
+    const [currentCard, setCurrentCard] = useState<SituationCard | null>(null)
+    const [allCards, setAllCards] = useState<SituationCard[]>([])
+    const [isCardRevealed, setIsCardRevealed] = useState(false)
+    const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+    const [isReactionDrawerOpen, setIsReactionDrawerOpen] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+
+    useEffect(() => {
+        const initializeGame = async () => {
+            try {
+                setIsLoading(true)
+
+                // Load players
+                const users = await getAllUsers()
+                if (users.length === 0) {
+                    router.push("/players")
+                    return
+                }
+                setPlayers(users)
+
+                // Load cards based on current language
+                const cards = await loadSituationCards(currentLanguage)
+                setAllCards(cards)
+
+                // Check for existing game state
+                const existingState = await getGameState()
+                if (existingState) {
+                    setGameState(existingState)
+                    setIsCardRevealed(existingState.isCardRevealed)
+                    setSelectedCardId(existingState.selectedCardId)
+
+                    if (existingState.isCardRevealed && existingState.currentCardId) {
+                        const card = await getCurrentCard(currentLanguage)
+                        setCurrentCard(card)
+                    }
+                } else {
+                    // Initialize new game
+                    const randomOrder =
+                        process.env.NEXT_PUBLIC_CARD_ORDER === "random"
+                    const playerIds = users.map((u) => u.id)
+                    const newState = await initializeGameState(playerIds, randomOrder, currentLanguage)
+                    setGameState(newState)
+                }
+            } catch (error) {
+                console.error("Failed to initialize game:", error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+
+        initializeGame()
+    }, [router, currentLanguage])
+
+    const handleCardStackClick = async () => {
+        if (isCardRevealed || !gameState) return
+
+        await revealCard()
+        const card = await getCurrentCard(currentLanguage)
+        setCurrentCard(card)
+        setIsCardRevealed(true)
+
+        // Update game state
+        const updatedState = await getGameState()
+        if (updatedState) {
+            setGameState(updatedState)
+        }
+    }
+
+    const handleCardClick = async (cardId: string) => {
+        setSelectedCardId(cardId)
+        await selectCard(cardId)
+        const card = allCards.find((c) => c.id === cardId)
+        if (card) {
+            setCurrentCard(card)
+            setIsDrawerOpen(true)
+        }
+    }
+
+    const handleDrawerClose = () => {
+        setIsDrawerOpen(false)
+        setSelectedCardId(null)
+    }
+
+    const handleReactionsSave = async (reactions: Record<string, ReactionType>) => {
+        try {
+            await saveReactions(reactions)
+            // Update game state
+            const updatedState = await getGameState()
+            if (updatedState) {
+                setGameState(updatedState)
+                
+                // Check if any player has non-passive reaction
+                const lastRoundReactions = updatedState.reactions?.[updatedState.reactions.length - 1]
+                const hasNonPassive = lastRoundReactions?.reactions.some(
+                    (r) => r.reaction !== "passive"
+                )
+
+                if (hasNonPassive) {
+                    // Navigate to thinking page
+                    router.push("/game/thinking")
+                } else {
+                    // All passive - go to results
+                    router.push("/game/results")
+                }
+            }
+        } catch (error) {
+            console.error("Failed to save reactions:", error)
+        }
+    }
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen px-4">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-lg font-medium text-muted-foreground">
+                        {t("game.loading")}
+                    </p>
+                </div>
+            </div>
+        )
+    }
+
+    if (!gameState || players.length === 0) {
+        return null
+    }
+
+    const remainingCards = gameState.cardOrder.slice(gameState.currentCardIndex + 1)
+    const revealedCardId = gameState.currentCardId
+
+    return (
+        <div className="flex flex-col min-h-screen px-4 py-6">
+            {/* Header with Players */}
+            <div className="mb-6">
+                <PlayersHeader
+                    players={players}
+                    activePlayerId={gameState.activePlayerId}
+                />
+            </div>
+
+            {/* Card Stack Area */}
+            <div className="flex-1 flex flex-col items-center justify-center gap-6">
+                {/* Instruction Text */}
+                {!isCardRevealed && (
+                    <p className="text-sm text-muted-foreground text-center">
+                        {t("game.selectCard")}
+                    </p>
+                )}
+
+                {/* Card Stack */}
+                <div className="relative flex items-center justify-center min-h-[300px]">
+                    {/* Card Stack (remaining cards) */}
+                    {remainingCards.length > 0 && !isCardRevealed && (
+                        <button
+                            onClick={handleCardStackClick}
+                            className={cn(
+                                "relative flex items-center justify-center transition-all cursor-pointer",
+                                "hover:scale-105"
+                            )}
+                        >
+                            {remainingCards.slice(0, 3).map((cardId, index) => {
+                                return (
+                                    <div
+                                        key={cardId}
+                                        className={cn(
+                                            "absolute w-32 h-48 rounded-lg border-2 shadow-lg transition-all overflow-hidden",
+                                            index === 0 && "z-10",
+                                            index === 1 && "z-0 -ms-1 mt-1",
+                                            index === 2 && "z-0 -ms-2 mt-2"
+                                        )}
+                                    >
+                                        <Image
+                                            src={cartBackImage}
+                                            alt={t("game.cardBack")}
+                                            fill
+                                            className="object-cover"
+                                            sizes="128px"
+                                        />
+                                    </div>
+                                )
+                            })}
+                        </button>
+                    )}
+
+                    {/* Revealed Card - Rotated and positioned beside stack */}
+                    {isCardRevealed && revealedCardId && (
+                        <div className="flex items-center gap-4">
+                            {/* Remaining stack (if any) */}
+                            {remainingCards.length > 0 && (
+                                <div className="relative flex items-center justify-center">
+                                    {remainingCards.slice(0, 2).map((cardId, index) => {
+                                        return (
+                                            <div
+                                                key={cardId}
+                                                className={cn(
+                                                    "absolute w-32 h-48 rounded-lg border-2 shadow-lg overflow-hidden",
+                                                    index === 0 && "z-10",
+                                                    index === 1 && "z-0 -ms-1 mt-1"
+                                                )}
+                                            >
+                                                <Image
+                                                    src={cartBackImage}
+                                                    alt="Card back"
+                                                    fill
+                                                    className="object-cover"
+                                                    sizes="128px"
+                                                />
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Revealed Card */}
+                            <div
+                                className={cn(
+                                    "relative z-20 transition-all duration-500",
+                                    "animate-in fade-in slide-in-from-bottom-4"
+                                )}
+                                style={{
+                                    transform: "rotate(-5deg)",
+                                }}
+                            >
+                                <button
+                                    onClick={() => handleCardClick(revealedCardId)}
+                                    className="w-40 h-56 rounded-lg border-2 bg-card shadow-xl hover:scale-105 transition-transform flex flex-col items-center justify-center gap-3 p-4"
+                                >
+                                    <span className="text-5xl">{currentCard?.emoji}</span>
+                                    <span className="text-sm font-semibold text-center line-clamp-2">
+                                        {currentCard?.title}
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Hint Text - Below revealed card */}
+                {isCardRevealed && revealedCardId && (
+                    <p className="text-sm text-muted-foreground text-center mt-4">
+                        {t("game.clickCardHint")}
+                    </p>
+                )}
+            </div>
+
+            {/* Bottom Section - Instructions and Next Button */}
+            {isCardRevealed && (
+                <div className="flex flex-col gap-4 mt-auto pt-6">
+                    {/* Instruction Text */}
+                    <p className="text-sm text-muted-foreground text-center leading-relaxed px-4">
+                        {t("game.cardRevealedInstruction")}
+                    </p>
+
+                    {/* Next Step Button */}
+                    <Button
+                        onClick={() => {
+                            setIsReactionDrawerOpen(true)
+                        }}
+                        className="bg-green-500 hover:bg-green-600 w-full"
+                    >
+                        {t("game.nextStep")}
+                    </Button>
+                </div>
+            )}
+
+            {/* Card Drawer */}
+            <CardDrawer
+                card={currentCard}
+                open={isDrawerOpen}
+                onOpenChange={setIsDrawerOpen}
+                onContinue={handleDrawerClose}
+            />
+
+            {/* Reaction Drawer */}
+            <ReactionDrawer
+                players={players}
+                activePlayerId={gameState.activePlayerId}
+                open={isReactionDrawerOpen}
+                onOpenChange={setIsReactionDrawerOpen}
+                onSave={handleReactionsSave}
+            />
+        </div>
+    )
+}
+
