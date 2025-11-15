@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { useRouter } from "next/navigation"
+import { useRouter } from "nextjs-toploader/app"
 import Image from "next/image"
 import { PlayersHeader } from "@/components/PlayersHeader"
 import { PlayerProfileModal } from "@/components/PlayerProfileModal"
@@ -23,10 +23,17 @@ export default function SecretPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const [allCards, setAllCards] = useState<SituationCard[]>([])
+  const isInitializedRef = useRef(false)
 
   useEffect(() => {
+    // Prevent re-initialization if already initialized
+    if (isInitializedRef.current) return
+
     const initializePage = async () => {
       try {
+        // Mark as initializing to prevent concurrent runs
+        isInitializedRef.current = true
+
         setIsLoading(true)
 
         // Load players, game state, and cards in parallel
@@ -49,11 +56,13 @@ export default function SecretPage() {
         }
 
         setGameState(state)
-        
+
         // Save checkpoint (non-blocking)
         saveCheckpoint("/game/secret").catch(console.error)
       } catch (error) {
         console.error("Failed to initialize secret page:", error)
+        // Reset on error so it can retry
+        isInitializedRef.current = false
         router.push("/game")
       } finally {
         setIsLoading(false)
@@ -61,7 +70,8 @@ export default function SecretPage() {
     }
 
     initializePage()
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLanguage])
 
   if (isLoading) {
     return (
