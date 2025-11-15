@@ -70,7 +70,7 @@ To ensure full Right-to-Left (RTL) compatibility (for the Persian language):
 ### Navigation & Behavior
 
 * All pages must be **mobile-first** and optimized for **performance**.
-* Use `next/navigation` for page transitions.
+* Use Link component or `nextjs-toploader/app` or `next/navigation` for page transitions.
 * Reusable UI actions (Drawers, Modals, Buttons) must come from the `components` directory.
 * Each user interaction (like adding a player) should trigger a clear, visible UI response.
 
