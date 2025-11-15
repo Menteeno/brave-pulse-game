@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useTranslation } from "react-i18next"
-import { Clock } from "lucide-react"
+import { Clock, AlertTriangle } from "lucide-react"
 import {
   Drawer,
   DrawerContent,
@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import type { User, GameState, RoundScores, SituationCard, ReactionType } from "@/lib/types"
+import type { User, GameState, RoundScores, SituationCard, ReactionType, PlayerBurnout } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 interface PlayerProfileModalProps {
@@ -39,8 +39,8 @@ export function PlayerProfileModal({
   // Get current player scores
   const currentScores = gameState?.scores && gameState.scores.length > 0
     ? gameState.scores[gameState.scores.length - 1].playerScores.find(
-        (s) => s.playerId === player.id
-      )
+      (s) => s.playerId === player.id
+    )
     : null
 
   // Get player history
@@ -69,6 +69,7 @@ export function PlayerProfileModal({
       if (!card) return
 
       // Find corresponding score entry by round number
+      if (!gameState.scores) return
       const scoreEntry = gameState.scores.find(
         (s) => s.round === roundReaction.round
       )
@@ -80,14 +81,18 @@ export function PlayerProfileModal({
       )
       const previousScores = previousScoreEntry
         ? previousScoreEntry.playerScores.find(
-            (s) => s.playerId === player.id
-          ) || { selfRespect: 5, relationshipHealth: 5, goalAchievement: 5 }
+          (s) => s.playerId === player.id
+        ) || { selfRespect: 5, relationshipHealth: 5, goalAchievement: 5 }
         : { selfRespect: 5, relationshipHealth: 5, goalAchievement: 5 }
 
       const currentScores = scoreEntry.playerScores.find(
         (s) => s.playerId === player.id
       )
       if (!currentScores) return
+
+      console.log("currentScores", currentScores);
+      console.log("previousScores", previousScores);
+
 
       const scoreChanges = {
         selfRespect: currentScores.selfRespect - previousScores.selfRespect,
@@ -110,6 +115,14 @@ export function PlayerProfileModal({
 
   const history = getPlayerHistory()
 
+  // Get player burnout history
+  const getPlayerBurnoutHistory = (): PlayerBurnout[] => {
+    if (!gameState || !gameState.burnoutHistory) return []
+    return gameState.burnoutHistory.filter(b => b.playerId === player.id)
+  }
+
+  const burnoutHistory = getPlayerBurnoutHistory()
+
   const formatScoreChange = (change: number): string | false => {
     if (change === 0) return false
     return change > 0 ? `+${change}` : `${change}`
@@ -117,6 +130,12 @@ export function PlayerProfileModal({
 
   const getReactionLabel = (reaction: ReactionType): string => {
     return t(`game.reaction.${reaction}`)
+  }
+
+  const getKpiName = (kpi: "selfRespect" | "relationshipHealth" | "goalAchievement"): string => {
+    if (kpi === "selfRespect") return t("gameIntro.kpiSelfRespect")
+    if (kpi === "relationshipHealth") return t("gameIntro.kpiRelationship")
+    return t("gameIntro.kpiGoal")
   }
 
   return (
@@ -141,81 +160,80 @@ export function PlayerProfileModal({
           </div>
         </DrawerHeader>
 
-        <div className="px-4 pb-4 space-y-6 max-h-[60vh] overflow-y-auto">
-          {/* KPI Scores */}
-          {currentScores && (
-            <div className="flex gap-2 justify-center">
-              <div
+        {/* KPI Scores */}
+        {currentScores && (
+          <div className="flex gap-2 justify-stretch px-4">
+            <div
+              className={cn(
+                "rounded-lg border-2 flex flex-col rtl:persian-number items-center justify-center p-2 flex-1",
+                currentScores.selfRespect < 3
+                  ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                  : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+              )}
+            >
+              <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                {t("gameIntro.kpiSelfRespect")}
+              </span>
+              <span
                 className={cn(
-                  "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
+                  "text-2xl font-bold",
                   currentScores.selfRespect < 3
-                    ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                    : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-blue-600 dark:text-blue-400"
                 )}
               >
-                <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                  {t("gameIntro.kpiSelfRespect")}
-                </span>
-                <span
-                  className={cn(
-                    "text-2xl font-bold",
-                    currentScores.selfRespect < 3
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-blue-600 dark:text-blue-400"
-                  )}
-                >
-                  {currentScores.selfRespect}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                  currentScores.relationshipHealth < 3
-                    ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                    : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                )}
-              >
-                <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                  {t("gameIntro.kpiRelationship")}
-                </span>
-                <span
-                  className={cn(
-                    "text-2xl font-bold",
-                    currentScores.relationshipHealth < 3
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-blue-600 dark:text-blue-400"
-                  )}
-                >
-                  {currentScores.relationshipHealth}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                  currentScores.goalAchievement < 3
-                    ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                    : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                )}
-              >
-                <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                  {t("gameIntro.kpiGoal")}
-                </span>
-                <span
-                  className={cn(
-                    "text-2xl font-bold",
-                    currentScores.goalAchievement < 3
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-blue-600 dark:text-blue-400"
-                  )}
-                >
-                  {currentScores.goalAchievement}
-                </span>
-              </div>
+                {currentScores.selfRespect}
+              </span>
             </div>
-          )}
-
+            <div
+              className={cn(
+                "rounded-lg border-2 flex flex-col rtl:persian-number items-center justify-center p-2 flex-1",
+                currentScores.relationshipHealth < 3
+                  ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                  : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+              )}
+            >
+              <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                {t("gameIntro.kpiRelationship")}
+              </span>
+              <span
+                className={cn(
+                  "text-2xl font-bold",
+                  currentScores.relationshipHealth < 3
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-blue-600 dark:text-blue-400"
+                )}
+              >
+                {currentScores.relationshipHealth}
+              </span>
+            </div>
+            <div
+              className={cn(
+                "rounded-lg border-2 flex flex-col rtl:persian-number items-center justify-center p-2 flex-1",
+                currentScores.goalAchievement < 3
+                  ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                  : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+              )}
+            >
+              <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                {t("gameIntro.kpiGoal")}
+              </span>
+              <span
+                className={cn(
+                  "text-2xl font-bold",
+                  currentScores.goalAchievement < 3
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-blue-600 dark:text-blue-400"
+                )}
+              >
+                {currentScores.goalAchievement}
+              </span>
+            </div>
+          </div>
+        )}
+        <div className="px-4 py-4 space-y-6">
           {/* History Section */}
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[50vh] overflow-y-auto">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-muted-foreground" />
               <h3 className="text-lg font-semibold">{t("game.history")}</h3>
@@ -232,9 +250,9 @@ export function PlayerProfileModal({
               ) : (
                 history.map((item, index) => (
                   <Card key={index} className="bg-gray-50 dark:bg-gray-900">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1">
+                    <CardContent className="p-0">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-border">
                           <p className="font-medium text-sm mb-1">
                             {item.cardTitle}
                           </p>
@@ -242,21 +260,55 @@ export function PlayerProfileModal({
                             {getReactionLabel(item.reaction)}
                           </p>
                         </div>
-                        <div className="flex gap-1 text-sm font-mono text-foreground">
-                          {[
-                            item.scoreChanges.selfRespect !== 0 &&
-                              formatScoreChange(item.scoreChanges.selfRespect),
-                            item.scoreChanges.relationshipHealth !== 0 &&
-                              formatScoreChange(
-                                item.scoreChanges.relationshipHealth
-                              ),
-                            item.scoreChanges.goalAchievement !== 0 &&
-                              formatScoreChange(
-                                item.scoreChanges.goalAchievement
-                              ),
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
+                        <div className="flex gap-2 justify-between rtl:persian-number text-foreground">
+                          <div className="flex-1 py-2 flex text-center flex-col border-e border-border">
+                            <p className="text-xs text-muted-foreground">{t("gameIntro.kpiSelfRespect")}:</p>
+                            <p dir="ltr" className="font-bold mt-1 text-center">{formatScoreChange(item.scoreChanges.selfRespect) || 0}</p>
+                          </div>
+                          <div className="flex-1 py-2 flex text-center flex-col border-e border-border">
+                            <p className="text-xs text-muted-foreground">{t("gameIntro.kpiRelationship")}:</p>
+                            <p dir="ltr" className="font-bold mt-1 text-center">{formatScoreChange(item.scoreChanges.relationshipHealth) || 0}</p>
+                          </div>
+                          <div className="flex-1 py-2 flex text-center flex-col">
+                            <p className="text-xs text-muted-foreground">{t("gameIntro.kpiGoal")}:</p>
+                            <p dir="ltr" className="font-bold mt-1 text-center">{formatScoreChange(item.scoreChanges.goalAchievement) || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Burnout History Section */}
+          <div className="space-y-3 max-h-[30vh] overflow-y-auto">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <h3 className="text-lg font-semibold">{t("game.burnoutHistory")}</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t("game.burnoutHistoryDescription")}
+            </p>
+
+            <div className="space-y-2">
+              {burnoutHistory.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {t("game.noBurnoutHistory")}
+                </p>
+              ) : (
+                burnoutHistory.map((burnout, index) => (
+                  <Card key={index} className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm text-red-700 dark:text-red-400">
+                            {t("game.burnoutHistoryItem", {
+                              round: burnout.round,
+                              kpiName: getKpiName(burnout.kpi),
+                            })}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -266,15 +318,6 @@ export function PlayerProfileModal({
             </div>
           </div>
         </div>
-
-        <DrawerFooter>
-          <Button
-            onClick={() => onOpenChange(false)}
-            className="bg-green-500 hover:bg-green-600 w-full"
-          >
-            {t("game.understood")}
-          </Button>
-        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   )
