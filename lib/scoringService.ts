@@ -9,6 +9,8 @@ import {
   PlayerScores,
   RoundScores,
   ReactionFeedback,
+  PlayerFatigue,
+  PlayerBurnout,
 } from "./types"
 import { getGameState, saveGameState } from "./dataService"
 import { getCurrentCard } from "./gameService"
@@ -62,6 +64,17 @@ function calculatePlayerScore(
 
   // Apply customCost if it exists and feedback specifies which KPI to apply it to
   if (reactionData.customCost && reactionData.customCost !== 0 && feedback?.customCostKpi) {
+    console.log(`[calculatePlayerScore] Applying customCost:`, {
+      playerId: currentScores.playerId,
+      customCost: reactionData.customCost,
+      customCostKpi: feedback.customCostKpi,
+      before: {
+        selfRespect: newScores.selfRespect,
+        relationshipHealth: newScores.relationshipHealth,
+        goalAchievement: newScores.goalAchievement,
+      }
+    })
+
     if (feedback.customCostKpi === "selfRespect") {
       newScores.selfRespect += reactionData.customCost
     } else if (feedback.customCostKpi === "relationshipHealth") {
@@ -69,6 +82,23 @@ function calculatePlayerScore(
     } else if (feedback.customCostKpi === "goalAchievement") {
       newScores.goalAchievement += reactionData.customCost
     }
+
+    console.log(`[calculatePlayerScore] After customCost:`, {
+      playerId: currentScores.playerId,
+      after: {
+        selfRespect: newScores.selfRespect,
+        relationshipHealth: newScores.relationshipHealth,
+        goalAchievement: newScores.goalAchievement,
+      }
+    })
+  } else if (reactionData.customCost && reactionData.customCost !== 0) {
+    console.log(`[calculatePlayerScore] customCost exists but not applied:`, {
+      playerId: currentScores.playerId,
+      customCost: reactionData.customCost,
+      hasFeedback: !!feedback,
+      customCostKpi: feedback?.customCostKpi,
+      reaction
+    })
   }
 
   // Apply feedback adjustments for assertive reactions only
@@ -76,34 +106,26 @@ function calculatePlayerScore(
   if (feedback && feedback.playerId === currentScores.playerId && reaction === "assertive") {
     // Adjust relationship health based on feedback
     if (feedback.relationshipHealthFeedback) {
-      const baseCost = reactionData.relationshipHealth
-      if (baseCost < 0) {
-        // Negative cost (penalty)
-        if (feedback.relationshipHealthFeedback === "good") {
-          // Reduce penalty by 1 (make it less negative)
-          newScores.relationshipHealth += 1
-        } else if (feedback.relationshipHealthFeedback === "bad") {
-          // Increase penalty by 1 (make it more negative)
-          newScores.relationshipHealth -= 1
-        }
-        // "normal" has no effect
+      if (feedback.relationshipHealthFeedback === "good") {
+        // Add +1 to relationship health
+        newScores.relationshipHealth += 1
+      } else if (feedback.relationshipHealthFeedback === "bad") {
+        // Subtract -1 from relationship health
+        newScores.relationshipHealth -= 1
       }
+      // "normal" has no effect (no change)
     }
 
     // Adjust goal achievement based on feedback
     if (feedback.goalAchievementFeedback) {
-      const baseCost = reactionData.goalAchievement
-      if (baseCost < 0) {
-        // Negative cost (penalty)
-        if (feedback.goalAchievementFeedback === "could") {
-          // Reduce penalty by 1 (make it less negative)
-          newScores.goalAchievement += 1
-        } else if (feedback.goalAchievementFeedback === "couldnt") {
-          // Increase penalty by 1 (make it more negative)
-          newScores.goalAchievement -= 1
-        }
-        // "normal" has no effect
+      if (feedback.goalAchievementFeedback === "could") {
+        // Add +1 to goal achievement
+        newScores.goalAchievement += 1
+      } else if (feedback.goalAchievementFeedback === "couldnt") {
+        // Subtract -1 from goal achievement
+        newScores.goalAchievement -= 1
       }
+      // "normal" has no effect (no change)
     }
   }
 
@@ -160,6 +182,9 @@ export async function calculateRoundScores(
     throw new Error("Current card not found")
   }
 
+  // Use feedback from parameter if provided, otherwise use feedback from lastRoundReactions
+  const feedbackToUse = feedback || lastRoundReactions.feedback
+
   // Get current player scores
   const currentScores = getCurrentPlayerScores(gameState, gameState.players)
 
@@ -169,28 +194,102 @@ export async function calculateRoundScores(
       (r) => r.playerId === currentScore.playerId
     )
     if (!playerReaction) {
+      // If no reaction found, still return the current score so player appears in results
       return currentScore
     }
 
     // Find feedback for this specific player
-    const playerFeedback = feedback?.find((f) => f.playerId === currentScore.playerId)
+    const playerFeedback = feedbackToUse?.find((f) => f.playerId === currentScore.playerId)
+
     return calculatePlayerScore(currentScore, playerReaction.reaction, card, playerFeedback)
+  })
+
+  // Ensure all players from gameState.players are included in scores
+  // This handles edge cases where a player might not have been in currentScores
+  const playerIdsInScores = new Set(newPlayerScores.map(s => s.playerId))
+  const missingPlayers = gameState.players
+    .filter(playerId => playerId !== gameState.activePlayerId) // Exclude active player
+    .filter(playerId => !playerIdsInScores.has(playerId))
+
+  // Add missing players with their initial scores
+  missingPlayers.forEach(playerId => {
+    const existingScore = currentScores.find(s => s.playerId === playerId)
+    if (existingScore) {
+      newPlayerScores.push(existingScore)
+    } else {
+      // Initialize with default scores if not found
+      newPlayerScores.push({
+        playerId,
+        selfRespect: DEFAULT_SCORE,
+        relationshipHealth: DEFAULT_SCORE,
+        goalAchievement: DEFAULT_SCORE,
+      })
+    }
   })
 
   // Calculate team score
   const currentTeamScore = gameState.teamScore || 0
-  const newTeamScore = calculateTeamScore(
+  let newTeamScore = calculateTeamScore(
     lastRoundReactions.reactions,
     card,
     currentTeamScore
   )
+
+  // Check for burnout: if any indicator reaches 0, apply burnout mechanic
+  const fatiguedPlayers: PlayerFatigue[] = []
+  const burnoutEvents: PlayerBurnout[] = []
+  let burnoutPenalty = 0
+
+  newPlayerScores.forEach((playerScore) => {
+    let hasBurnout = false
+    let indicatorReachedZero: "selfRespect" | "relationshipHealth" | "goalAchievement" | null = null
+
+    // Check if any indicator reached 0
+    if (playerScore.selfRespect === 0) {
+      hasBurnout = true
+      indicatorReachedZero = "selfRespect"
+    } else if (playerScore.relationshipHealth === 0) {
+      hasBurnout = true
+      indicatorReachedZero = "relationshipHealth"
+    } else if (playerScore.goalAchievement === 0) {
+      hasBurnout = true
+      indicatorReachedZero = "goalAchievement"
+    }
+
+    if (hasBurnout && indicatorReachedZero) {
+      // Apply burnout mechanic:
+      // 1. Team loses -10 points per burnout
+      burnoutPenalty -= 10
+
+      // 2. Apply "shock" - reset the indicator to 3
+      playerScore[indicatorReachedZero] = 3
+
+      // 3. Record burnout event
+      burnoutEvents.push({
+        playerId: playerScore.playerId,
+        round: gameState.currentRound,
+        kpi: indicatorReachedZero,
+      })
+
+      // 4. Mark player as fatigued for the next round (currentRound + 1)
+      fatiguedPlayers.push({
+        playerId: playerScore.playerId,
+        round: gameState.currentRound + 1,
+      })
+    }
+  })
+
+  // Apply burnout penalty to team score (multiplied by number of burnout events)
+  newTeamScore += burnoutPenalty
 
   return {
     round: gameState.currentRound,
     cardId: lastRoundReactions.cardId,
     playerScores: newPlayerScores,
     teamScore: newTeamScore,
-    feedback,
+    feedback: feedbackToUse, // Use feedbackToUse instead of feedback parameter
+    fatiguedPlayers: fatiguedPlayers.length > 0 ? fatiguedPlayers : undefined,
+    burnoutEvents: burnoutEvents.length > 0 ? burnoutEvents : undefined,
   }
 }
 
@@ -205,12 +304,12 @@ export async function saveRoundScores(roundScores: RoundScores): Promise<void> {
   }
 
   const existingScores = gameState.scores || []
-  
+
   // Check if scores for this round already exist
   const existingRoundScore = existingScores.find(
     (s) => s.round === roundScores.round
   )
-  
+
   if (existingRoundScore) {
     // Scores already exist for this round, don't recalculate
     return
@@ -218,10 +317,44 @@ export async function saveRoundScores(roundScores: RoundScores): Promise<void> {
 
   const updatedScores = [...existingScores, roundScores]
 
+  // Update fatigued players: merge new fatigued players with existing ones
+  // Remove fatigued players from previous rounds (they can play assertively again)
+  const existingFatiguedPlayers = gameState.fatiguedPlayers || []
+  const currentRound = gameState.currentRound
+
+  // Keep only fatigued players that are still in effect (their round >= currentRound)
+  const activeFatiguedPlayers = existingFatiguedPlayers.filter(
+    (fp) => fp.round >= currentRound
+  )
+
+  // Add new fatigued players from this round
+  const newFatiguedPlayers = roundScores.fatiguedPlayers || []
+  const allFatiguedPlayers = [...activeFatiguedPlayers, ...newFatiguedPlayers]
+
+  // Remove duplicates (same playerId, keep the one with the highest round)
+  const uniqueFatiguedPlayers = allFatiguedPlayers.reduce((acc, current) => {
+    const existing = acc.find((fp) => fp.playerId === current.playerId)
+    if (!existing) {
+      acc.push(current)
+    } else if (current.round > existing.round) {
+      // Replace with the one that has a higher round number
+      const index = acc.indexOf(existing)
+      acc[index] = current
+    }
+    return acc
+  }, [] as PlayerFatigue[])
+
+  // Update burnout history: add new burnout events to existing history
+  const existingBurnoutHistory = gameState.burnoutHistory || []
+  const newBurnoutEvents = roundScores.burnoutEvents || []
+  const updatedBurnoutHistory = [...existingBurnoutHistory, ...newBurnoutEvents]
+
   const updatedState: GameState = {
     ...gameState,
     scores: updatedScores,
     teamScore: roundScores.teamScore,
+    fatiguedPlayers: uniqueFatiguedPlayers.length > 0 ? uniqueFatiguedPlayers : undefined,
+    burnoutHistory: updatedBurnoutHistory.length > 0 ? updatedBurnoutHistory : undefined,
     lastUpdatedAt: new Date().toISOString(),
   }
 
