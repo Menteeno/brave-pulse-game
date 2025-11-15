@@ -19,7 +19,7 @@ import type { User } from "@/lib/types"
 
 interface EditPlayerDrawerProps {
   user: User
-  onUpdate: (user: User) => void
+  onUpdate: (user: User) => Promise<{ success?: boolean; error?: string }>
   trigger?: React.ReactNode
 }
 
@@ -31,6 +31,7 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
     lastName: user.lastName,
     email: user.email,
   })
+  const [error, setError] = useState<string | null>(null)
 
   // Update form data when user changes
   useEffect(() => {
@@ -39,28 +40,45 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
       lastName: user.lastName,
       email: user.email,
     })
+    setError(null)
   }, [user])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (error) setError(null)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.firstName && formData.lastName && formData.email) {
+      setError(null)
       const updatedUser: User = {
         ...user,
         ...formData,
         updatedAt: new Date().toISOString(),
       }
-      onUpdate(updatedUser)
-      setOpen(false)
+      const result = await onUpdate(updatedUser)
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setOpen(false)
+        setError(null)
+      }
     }
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen)
+        if (!newOpen) {
+          setError(null)
+        }
+      }}
+    >
       <div className="relative group">
         {trigger}
         <DrawerTrigger asChild>
@@ -81,7 +99,7 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
             {t("players.editTeammateSubtitle")}
           </DrawerDescription>
         </DrawerHeader>
-        <form onSubmit={handleSubmit} className="px-4 pb-4 space-y-4">
+        <form onSubmit={handleSubmit} className="px-4 pb-4 space-y-4" onReset={() => setError(null)}>
           <div className="grid grid-cols-2 gap-4">
             <Input
               name="firstName"
@@ -98,14 +116,20 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
               required
             />
           </div>
-          <Input
-            name="email"
-            type="email"
-            placeholder={t("players.email")}
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
+          <div className="space-y-2">
+            <Input
+              name="email"
+              type="email"
+              placeholder={t("players.email")}
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className={error ? "border-destructive" : ""}
+            />
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+          </div>
           <DrawerFooter>
             <Button type="submit" className="bg-green-500 hover:bg-green-600">
               {t("players.updateTeammateButton")}
