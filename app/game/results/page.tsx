@@ -1,19 +1,21 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { useRouter } from "next/navigation"
-import { Heart, Plus, Minus } from "lucide-react"
+import { useRouter } from "nextjs-toploader/app"
+import { HeartPlus, HeartMinus, ChartColumnIncreasing, AlertTriangle, Info, Smile, Frown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PlayersHeader } from "@/components/PlayersHeader"
 import { PlayerProfileModal } from "@/components/PlayerProfileModal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
 import { getCurrentCard, loadSituationCards } from "@/lib/gameService"
 import { nextRound } from "@/lib/gameService"
 import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
 import type { User, GameState, RoundScores, SituationCard, ReactionType } from "@/lib/types"
+import { Separator } from "@/components/ui/separator"
 
 export default function ResultsPage() {
   const { t, i18n } = useTranslation("common")
@@ -29,13 +31,54 @@ export default function ResultsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+  const isInitializedRef = useRef(false)
 
   useEffect(() => {
+    // Prevent re-initialization if already initialized
+    if (isInitializedRef.current) return
+
     const initializePage = async () => {
       try {
+        // Mark as initializing to prevent concurrent runs
+        isInitializedRef.current = true
+
         setIsLoading(true)
 
-        // Load players, game state, and cards in parallel
+        // Optimistic: Load cached data first for instant display
+        const [cachedUsers, cachedState] = await Promise.all([
+          getAllUsers(),
+          getGameState(),
+        ])
+
+        // Show cached data immediately
+        if (cachedUsers.length > 0) {
+          setPlayers(cachedUsers)
+        }
+        if (cachedState) {
+          setGameState(cachedState)
+
+          // Show existing scores immediately if available
+          if (cachedState.scores && cachedState.scores.length > 0) {
+            const lastRoundScores = cachedState.scores[cachedState.scores.length - 1]
+            setRoundScores(lastRoundScores)
+
+            if (cachedState.scores.length > 1) {
+              const previousRoundScores = cachedState.scores[cachedState.scores.length - 2]
+              setPreviousScores(previousRoundScores.playerScores)
+            } else {
+              setPreviousScores(
+                cachedState.players.map((playerId) => ({
+                  playerId,
+                  selfRespect: 5,
+                  relationshipHealth: 5,
+                  goalAchievement: 5,
+                }))
+              )
+            }
+          }
+        }
+
+        // Load fresh data in parallel
         const [users, state, cards] = await Promise.all([
           getAllUsers(),
           getGameState(),
@@ -56,9 +99,8 @@ export default function ResultsPage() {
 
         setGameState(state)
 
-        // Check if scores for current round exist, if not calculate them
+        // Calculate scores in background (non-blocking)
         const lastRoundReactions = state.reactions?.[state.reactions.length - 1]
-        let finalState = state
         if (lastRoundReactions) {
           const existingScores = state.scores || []
           const existingRoundScore = existingScores.find(
@@ -66,51 +108,68 @@ export default function ResultsPage() {
           )
 
           if (!existingRoundScore) {
-            // Scores don't exist for this round, calculate them
-            try {
-              const roundScores = await calculateRoundScores(
-                state,
-                currentLanguage,
-                lastRoundReactions.feedback
+            // Re-fetch game state to get the latest feedback before calculating scores
+            getGameState()
+              .then(async (latestState) => {
+                if (!latestState) {
+                  throw new Error("Game state not found")
+                }
+
+                // Use the latest feedback from the updated game state
+                const latestFeedback = latestState.reactions?.[latestState.reactions.length - 1]?.feedback
+
+                // Calculate scores in background (don't block UI)
+                return calculateRoundScores(
+                  latestState,
+                  currentLanguage,
+                  latestFeedback
+                )
+              })
+              .then(async (roundScores) => {
+                await saveRoundScores(roundScores)
+                // Update UI with calculated scores
+                const updatedState = await getGameState()
+                if (updatedState) {
+                  setGameState(updatedState)
+
+                  if (updatedState.scores && updatedState.scores.length > 0) {
+                    const lastRoundScores = updatedState.scores[updatedState.scores.length - 1]
+                    setRoundScores(lastRoundScores)
+
+                    if (updatedState.scores.length > 1) {
+                      const previousRoundScores = updatedState.scores[updatedState.scores.length - 2]
+                      setPreviousScores(previousRoundScores.playerScores)
+                    }
+                  }
+                }
+              })
+              .catch((error) => {
+                console.error("Failed to calculate scores:", error)
+              })
+          } else {
+            // Scores already exist, use them
+            const lastRoundScores = existingScores[existingScores.length - 1]
+            setRoundScores(lastRoundScores)
+
+            if (existingScores.length > 1) {
+              const previousRoundScores = existingScores[existingScores.length - 2]
+              setPreviousScores(previousRoundScores.playerScores)
+            } else {
+              setPreviousScores(
+                state.players.map((playerId) => ({
+                  playerId,
+                  selfRespect: 5,
+                  relationshipHealth: 5,
+                  goalAchievement: 5,
+                }))
               )
-              await saveRoundScores(roundScores)
-              // Reload game state to get updated scores
-              const updatedState = await getGameState()
-              if (updatedState) {
-                setGameState(updatedState)
-                finalState = updatedState
-              }
-            } catch (error) {
-              console.error("Failed to calculate scores:", error)
             }
           }
         }
 
-        // Get last round scores
-        if (finalState.scores && finalState.scores.length > 0) {
-          const lastRoundScores = finalState.scores[finalState.scores.length - 1]
-          setRoundScores(lastRoundScores)
-
-          // Get previous scores (before this round)
-          if (finalState.scores.length > 1) {
-            const previousRoundScores = finalState.scores[finalState.scores.length - 2]
-            setPreviousScores(previousRoundScores.playerScores)
-          } else {
-            // First round - use initial scores (5 for each)
-            setPreviousScores(
-              finalState.players.map((playerId) => ({
-                playerId,
-                selfRespect: 5,
-                relationshipHealth: 5,
-                goalAchievement: 5,
-              }))
-            )
-          }
-        }
-
         // Use already loaded cards instead of loading again
-        if (finalState.currentCardId) {
-          const currentCardId = finalState.cardOrder[finalState.currentCardIndex]
+        if (state.currentCardId) {
+          const currentCardId = state.cardOrder[state.currentCardIndex]
           const card = cards.find((c) => c.id === currentCardId) || null
           setCurrentCard(card)
         }
@@ -126,7 +185,8 @@ export default function ResultsPage() {
     }
 
     initializePage()
-  }, [router, currentLanguage])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLanguage])
 
   const handleNextRound = async () => {
     if (!gameState) return
@@ -134,8 +194,8 @@ export default function ResultsPage() {
     // Check if game is finished (max rounds reached)
     const maxRounds = parseInt(process.env.NEXT_PUBLIC_MAX_ROUNDS || "8", 10)
     if (gameState.currentRound >= maxRounds) {
-      // Game finished - could redirect to a game over page
-      router.push("/game")
+      // Game finished - redirect to final results page
+      router.push("/game/final-results")
       return
     }
 
@@ -161,6 +221,19 @@ export default function ResultsPage() {
     const currentScore = roundScores.playerScores.find((s) => s.playerId === playerId)
     const previousScore = previousScores.find((s) => s.playerId === playerId)
     if (!currentScore || !previousScore) return 0
+
+    // Check if this player had burnout for this KPI
+    const playerBurnout = roundScores.burnoutEvents?.find(
+      (b) => b.playerId === playerId && b.kpi === kpi
+    )
+
+    // If burnout occurred, the score reached 0 before being reset to 3
+    // So we need to calculate the change as if it went to 0, not 3
+    if (playerBurnout) {
+      // The actual change: from previousScore to 0
+      return 0 - previousScore[kpi]
+    }
+
     return currentScore[kpi] - previousScore[kpi]
   }
 
@@ -245,15 +318,62 @@ export default function ResultsPage() {
               if (!playerScores) return null
 
               const reaction = getPlayerReaction(player.id)
-              const selfRespectChange = getScoreChange(player.id, "selfRespect")
-              const relationshipHealthChange = getScoreChange(
+
+              // Check if this player experienced burnout in this round
+              const playerBurnout = roundScores.burnoutEvents?.find(
+                (b) => b.playerId === player.id
+              )
+
+              // First, check for customCost to subtract it from the KPI changes
+              let customCostInfo: {
+                kpi: "selfRespect" | "relationshipHealth" | "goalAchievement"
+                change: number
+                title: string
+                description: string
+              } | null = null
+
+              let customCostValue = 0
+              if (currentCard && reaction) {
+                const reactionData = currentCard.individualGainAndCost[reaction]
+                if (reactionData.customCost && reactionData.customCost !== 0) {
+                  const feedback = roundScores.feedback?.find(f => f.playerId === player.id)
+                  if (feedback?.customCostKpi) {
+                    customCostInfo = {
+                      kpi: feedback.customCostKpi,
+                      change: reactionData.customCost,
+                      title: reactionData.customCostTitle || t("game.customCost"),
+                      description: reactionData.customCostDescription || "",
+                    }
+                    customCostValue = reactionData.customCost
+                  }
+                }
+              }
+
+              // Get score changes (these include customCost, but NOT burnout recovery)
+              let selfRespectChange = getScoreChange(player.id, "selfRespect")
+              let relationshipHealthChange = getScoreChange(
                 player.id,
                 "relationshipHealth"
               )
-              const goalAchievementChange = getScoreChange(
+              let goalAchievementChange = getScoreChange(
                 player.id,
                 "goalAchievement"
               )
+
+              // Subtract customCost from the KPI it was applied to
+              if (customCostInfo) {
+                if (customCostInfo.kpi === "selfRespect") {
+                  selfRespectChange -= customCostValue
+                } else if (customCostInfo.kpi === "relationshipHealth") {
+                  relationshipHealthChange -= customCostValue
+                } else if (customCostInfo.kpi === "goalAchievement") {
+                  goalAchievementChange -= customCostValue
+                }
+              }
+
+              // If burnout occurred, the change shows drop to 0
+              // The recovery to 3 is handled separately in the display
+              // So we don't need to modify the changes here
 
               const gains: Array<{
                 kpi: string
@@ -324,254 +444,443 @@ export default function ResultsPage() {
                 })
               }
 
-              // Check for customCost - add it to the selected KPI instead of separate entry
-              let customCostInfo: {
-                kpi: "selfRespect" | "relationshipHealth" | "goalAchievement"
-                change: number
-                title: string
-                description: string
-              } | null = null
+              // Add customCost as a separate entry in costs or gains
+              if (customCostInfo) {
+                const kpiName = customCostInfo.kpi === "selfRespect"
+                  ? t("gameIntro.kpiSelfRespect")
+                  : customCostInfo.kpi === "relationshipHealth"
+                    ? t("gameIntro.kpiRelationship")
+                    : t("gameIntro.kpiGoal")
 
-              if (currentCard && reaction) {
-                const reactionData = currentCard.individualGainAndCost[reaction]
-                if (reactionData.customCost && reactionData.customCost !== 0) {
-                  const feedback = roundScores.feedback?.find(f => f.playerId === player.id)
-                  if (feedback?.customCostKpi) {
-                    customCostInfo = {
-                      kpi: feedback.customCostKpi,
-                      change: reactionData.customCost,
-                      title: reactionData.customCostTitle || t("game.customCost"),
-                      description: reactionData.customCostDescription || "",
-                    }
-                  }
+                if (customCostValue < 0) {
+                  costs.push({
+                    kpi: customCostInfo.title,
+                    change: customCostValue,
+                    description: `${customCostInfo.description} (${t("game.appliedTo")} ${kpiName})`,
+                  })
+                } else if (customCostValue > 0) {
+                  gains.push({
+                    kpi: customCostInfo.title,
+                    change: customCostValue,
+                    description: `${customCostInfo.description} (${t("game.appliedTo")} ${kpiName})`,
+                  })
                 }
               }
 
-              if (gains.length === 0 && costs.length === 0) return null
+              // Add burnout recovery (shock) as a separate gain if burnout occurred
+              // The change already shows the drop to 0, now we add the recovery to 3
+              if (playerBurnout) {
+                const burnoutKpiName = playerBurnout.kpi === "selfRespect"
+                  ? t("gameIntro.kpiSelfRespect")
+                  : playerBurnout.kpi === "relationshipHealth"
+                    ? t("gameIntro.kpiRelationship")
+                    : t("gameIntro.kpiGoal")
+
+                gains.push({
+                  kpi: t("game.burnoutRecovery"),
+                  change: 3,
+                  description: t("game.burnoutRecoveryDescription", { kpiName: burnoutKpiName }),
+                })
+              }
 
               return (
-                <div key={player.id} className="space-y-4">
-                  <div className="flex flex-col gap-3 mb-2">
-                    <h2 className="text-lg font-semibold">
-                      {t("game.playerResults", {
-                        name: `${player.firstName} ${player.lastName}`,
-                      })}
-                    </h2>
+                <React.Fragment key={player.id}>
+                  <div className="space-y-4">
+                    <div className="flex flex-col gap-3 mb-2">
+                      <div className="flex items-center justify-between gap-3 mb-2">
+                        <h2 className="text-lg font-semibold">
+                          {player.firstName} {player.lastName}
+                        </h2>
 
-                    {/* KPI Score Boxes */}
-                    <div className="flex gap-2 justify-start">
-                      <div
-                        className={cn(
-                          "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                          playerScores.selfRespect < 3
-                            ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                            : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                        )}
-                      >
-                        <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                          {t("gameIntro.kpiSelfRespect")}
-                        </span>
-                        <span className={cn(
-                          "text-2xl font-bold",
-                          playerScores.selfRespect < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
-                        )}>
-                          {playerScores.selfRespect}
-                        </span>
+                        {/* Player Reaction Overview */}
+                        <p className="inline-flex items-center gap-1">
+                          {t("game.reactionLabel")}:
+                          <span className="font-medium">
+                            {t(`game.reaction.${reaction}`)}
+                          </span>
+                        </p>
                       </div>
-                      <div
-                        className={cn(
-                          "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                          playerScores.relationshipHealth < 3
-                            ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                            : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                        )}
-                      >
-                        <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                          {t("gameIntro.kpiRelationship")}
-                        </span>
-                        <span className={cn(
-                          "text-2xl font-bold",
-                          playerScores.relationshipHealth < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
-                        )}>
-                          {playerScores.relationshipHealth}
-                        </span>
-                      </div>
-                      <div
-                        className={cn(
-                          "w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center px-2",
-                          playerScores.goalAchievement < 3
-                            ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
-                            : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
-                        )}
-                      >
-                        <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
-                          {t("gameIntro.kpiGoal")}
-                        </span>
-                        <span className={cn(
-                          "text-2xl font-bold",
-                          playerScores.goalAchievement < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
-                        )}>
-                          {playerScores.goalAchievement}
-                        </span>
+
+
+                      {/* KPI Score Boxes */}
+                      <div className="flex gap-2 justify-stretch items-center w-full">
+                        {(() => {
+                          // If this KPI had burnout, show 3 instead of actual score
+                          const selfRespectValue = playerBurnout?.kpi === "selfRespect" ? 3 : playerScores.selfRespect
+                          const relationshipHealthValue = playerBurnout?.kpi === "relationshipHealth" ? 3 : playerScores.relationshipHealth
+                          const goalAchievementValue = playerBurnout?.kpi === "goalAchievement" ? 3 : playerScores.goalAchievement
+
+                          return (
+                            <>
+                              <div
+                                className={cn(
+                                  "rounded-lg border-2 flex flex-col rtl:persian-number items-center justify-center px-2 py-4 flex-1",
+                                  selfRespectValue < 3
+                                    ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                                    : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+                                )}
+                              >
+                                <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                                  {t("gameIntro.kpiSelfRespect")}
+                                </span>
+                                <span className={cn(
+                                  "text-2xl font-bold",
+                                  selfRespectValue < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
+                                )}>
+                                  {selfRespectValue}
+                                </span>
+                              </div>
+                              <div
+                                className={cn(
+                                  "rounded-lg border-2 flex flex-col rtl:persian-number items-center justify-center px-2 py-4 flex-1",
+                                  relationshipHealthValue < 3
+                                    ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                                    : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+                                )}
+                              >
+                                <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                                  {t("gameIntro.kpiRelationship")}
+                                </span>
+                                <span className={cn(
+                                  "text-2xl font-bold",
+                                  relationshipHealthValue < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
+                                )}>
+                                  {relationshipHealthValue}
+                                </span>
+                              </div>
+                              <div
+                                className={cn(
+                                  "rounded-lg border-2 flex flex-col rtl:persian-number items-center justify-center px-2 py-4 flex-1",
+                                  goalAchievementValue < 3
+                                    ? "bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700"
+                                    : "bg-blue-50 dark:bg-blue-950 border-blue-300 dark:border-blue-700"
+                                )}
+                              >
+                                <span className="text-xs font-medium text-foreground mb-1 text-center leading-tight">
+                                  {t("gameIntro.kpiGoal")}
+                                </span>
+                                <span className={cn(
+                                  "text-2xl font-bold",
+                                  goalAchievementValue < 3 ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-400"
+                                )}>
+                                  {goalAchievementValue}
+                                </span>
+                              </div>
+                            </>
+                          )
+                        })()}
                       </div>
                     </div>
+
+                    {/* Gains */}
+                    {gains.length > 0 && (
+                      <Card className="bg-green-50 relative dark:bg-green-950 border-green-200 dark:border-green-800">
+                        <CardHeader className="p-5 py-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              {t("game.individualProfit")}
+                            </CardTitle>
+                            <HeartPlus className="size-8 opacity-50 text-green-600 dark:text-green-400" />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          {gains.map((gain, index) => {
+                            return (
+                              <div key={index} className="border-t border-green-200 dark:border-green-800 py-2 px-5 space-y-1">
+                                <p className="font-medium w-full flex justify-between">
+                                  <span>{gain.kpi}:</span>
+                                  <span className="text-green-800 dark:text-green-200 rtl:persian-number font-black tracking-wider" dir="ltr">{gain.change}</span>
+                                </p>
+                                {gain.description && (
+                                  <p className="font-medium w-full flex justify-between">
+
+                                    <span className="font-light">{gain.description}</span>
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Costs */}
+                    {costs.length > 0 && (
+                      <Card className="bg-red-50 relative dark:bg-red-950 border-red-200 dark:border-red-800">
+                        <CardHeader className="p-5 py-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              {t("game.individualCost")}
+                            </CardTitle>
+                            <HeartMinus className="size-8 opacity-50 text-red-600 dark:text-red-400" />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          {costs.map((cost, index) => {
+                            return (
+                              <div key={index} className="border-t border-red-200 dark:border-red-800 py-2 px-5 space-y-1">
+                                <p className="font-medium w-full flex justify-between">
+                                  <span>{cost.kpi}:</span>
+                                  <span className="text-red-800 dark:text-red-200 rtl:persian-number font-black tracking-wider" dir="ltr">{cost.change}</span>
+                                </p>
+                                {cost.description && (
+                                  <p className="font-medium w-full flex justify-between">
+
+                                    <span className="font-light">{cost.description}</span>
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Feedback Impact Alert */}
+                    {(() => {
+                      // Check if player played assertively and has feedback
+                      if (reaction !== "assertive" || !roundScores.feedback) {
+                        return null
+                      }
+
+                      const playerFeedback = roundScores.feedback.find(
+                        (f) => f.playerId === player.id
+                      )
+
+                      if (!playerFeedback) {
+                        return null
+                      }
+
+                      // Determine which KPIs were affected by feedback
+                      // NOTE: customCostKpi is NOT part of feedback - it's separate (customCost)
+                      // Feedback only includes relationshipHealthFeedback and goalAchievementFeedback
+                      const affectedKPIs: Array<{
+                        kpi: "relationshipHealth" | "goalAchievement"
+                        kpiName: string
+                      }> = []
+
+                      // Check relationshipHealthFeedback (if not "normal")
+                      if (
+                        playerFeedback.relationshipHealthFeedback &&
+                        playerFeedback.relationshipHealthFeedback !== "normal"
+                      ) {
+                        affectedKPIs.push({
+                          kpi: "relationshipHealth",
+                          kpiName: t("gameIntro.kpiRelationship"),
+                        })
+                      }
+
+                      // Check goalAchievementFeedback (if not "normal")
+                      if (
+                        playerFeedback.goalAchievementFeedback &&
+                        playerFeedback.goalAchievementFeedback !== "normal"
+                      ) {
+                        affectedKPIs.push({
+                          kpi: "goalAchievement",
+                          kpiName: t("gameIntro.kpiGoal"),
+                        })
+                      }
+
+                      if (affectedKPIs.length === 0) {
+                        return null
+                      }
+
+                      // Join all KPI names with "و" (and) separator
+                      const kpiNames = affectedKPIs.map((kpi) => kpi.kpiName)
+                      const kpiNamesText = kpiNames.join(` ${t("game.and")} `)
+
+                      // Display single alert for all affected KPIs
+                      return (
+                        <Alert
+                          key={`feedback-${player.id}`}
+                          className="border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800 mt-4"
+                        >
+                          <Info className="w-5 h-5 text-blue-500" />
+                          <AlertDescription className="text-sm text-muted-foreground">
+                            {t("game.feedbackImpactAlert", {
+                              activePlayer: activePlayerName,
+                              playerName: `${player.firstName} ${player.lastName}`,
+                              kpi: kpiNamesText,
+                            })}
+                          </AlertDescription>
+                        </Alert>
+                      )
+                    })()}
+
+                    {/* Burnout Alert */}
+                    {playerBurnout && (() => {
+                      const kpiName = playerBurnout.kpi === "selfRespect"
+                        ? t("gameIntro.kpiSelfRespect")
+                        : playerBurnout.kpi === "relationshipHealth"
+                          ? t("gameIntro.kpiRelationship")
+                          : t("gameIntro.kpiGoal")
+                      const totalBurnoutCount = roundScores.burnoutEvents?.length || 0
+                      const totalPenalty = -10 * totalBurnoutCount
+
+                      return (
+                        <Alert variant="destructive" className="border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800">
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                          <AlertTitle className="text-lg font-semibold text-red-700 dark:text-red-400">
+                            {t("game.burnoutAlert")}
+                          </AlertTitle>
+                          <AlertDescription className="text-sm text-muted-foreground rtl:persian-number">
+                            {t("game.burnoutAlertDescription", {
+                              playerName: `${player.firstName} ${player.lastName}`,
+                              penalty: Math.abs(totalPenalty),
+                              kpiName: kpiName,
+                            })}
+                          </AlertDescription>
+                        </Alert>
+                      )
+                    })()}
                   </div>
-
-                  {/* Gains */}
-                  {gains.length > 0 && (
-                    <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Heart className="w-5 h-5 text-green-600 dark:text-green-400" />
-                          <Plus className="w-4 h-4 text-green-600 dark:text-green-400" />
-                          {t("game.individualProfit")}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {gains.map((gain, index) => {
-                          const isCustomCostKpi = customCostInfo && customCostInfo.kpi === gain.kpi && customCostInfo.change > 0
-                          return (
-                            <div key={index} className="text-sm">
-                              <p className="font-medium">{gain.kpi}</p>
-                              {gain.description && (
-                                <p className="text-muted-foreground mt-1">
-                                  {t("game.reason")}: {gain.description}
-                                </p>
-                              )}
-                              {isCustomCostKpi && customCostInfo && (
-                                <p className="text-muted-foreground mt-1 text-xs italic">
-                                  {customCostInfo.title}: {customCostInfo.change > 0 ? '+' : ''}{customCostInfo.change} - {customCostInfo.description}
-                                </p>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Costs */}
-                  {costs.length > 0 && (
-                    <Card className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Heart className="w-5 h-5 text-red-600 dark:text-red-400" />
-                          <Minus className="w-4 h-4 text-red-600 dark:text-red-400" />
-                          {t("game.individualCost")}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        {costs.map((cost, index) => {
-                          const isCustomCostKpi = customCostInfo && customCostInfo.kpi === cost.kpi && customCostInfo.change < 0
-                          return (
-                            <div key={index} className="text-sm">
-                              <p className="font-medium">
-                                {Math.abs(cost.change)}- {cost.kpi}
-                              </p>
-                              {cost.description && (
-                                <p className="text-muted-foreground mt-1">
-                                  {t("game.reason")}: {cost.description}
-                                </p>
-                              )}
-                              {isCustomCostKpi && customCostInfo && (
-                                <p className="text-muted-foreground mt-1 text-xs italic">
-                                  {customCostInfo.title}: {customCostInfo.change} - {customCostInfo.description}
-                                </p>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
+                  <Separator />
+                </React.Fragment>
               )
             })}
         </div>
 
         {/* Team Scores */}
-        <div className="mt-6">
-          <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-            <CardHeader>
-              <CardTitle className="text-lg">{t("game.teamScores")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {(() => {
-                  const previousTeamScore = gameState.scores && gameState.scores.length > 1
-                    ? gameState.scores[gameState.scores.length - 2].teamScore
-                    : 0
-                  const teamScoreChange = roundScores.teamScore - previousTeamScore
-                  const changeText = teamScoreChange >= 0
-                    ? `+${teamScoreChange}`
-                    : `${teamScoreChange}`
-
-                  return (
-                    <>
-                      <p className="text-2xl font-bold">
-                        {t("game.teamScore")}: {roundScores.teamScore}
-                        {teamScoreChange !== 0 && (
-                          <span className={cn(
-                            "text-lg ms-2",
-                            teamScoreChange >= 0 ? "text-green-600" : "text-red-600"
-                          )}>
-                            ({changeText})
-                          </span>
-                        )}
-                      </p>
-                    </>
-                  )
-                })()}
-                {currentCard && (
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    {(() => {
-                      const lastRoundReactions =
-                        gameState.reactions?.[gameState.reactions.length - 1]
-                      if (!lastRoundReactions) return null
-
-                      const assertiveCount = lastRoundReactions.reactions.filter(
-                        (r) => r.reaction === "assertive"
-                      ).length
-                      const totalPlayers = lastRoundReactions.reactions.length
-
-                      if (
-                        assertiveCount === totalPlayers &&
-                        currentCard.teamResults.allAssertiveDescription
-                      ) {
-                        return (
-                          <p>
-                            {t("game.teamResultAllAssertive")}:{" "}
-                            {currentCard.teamResults.allAssertiveDescription}
-                          </p>
-                        )
-                      } else if (
-                        assertiveCount === 1 &&
-                        currentCard.teamResults.onlyOneAssertiveDescription
-                      ) {
-                        return (
-                          <p>
-                            {t("game.teamResultOnlyOneAssertive")}:{" "}
-                            {currentCard.teamResults.onlyOneAssertiveDescription}
-                          </p>
-                        )
-                      } else if (
-                        currentCard.teamResults.perPersonAssertiveDescription
-                      ) {
-                        return (
-                          <p>
-                            {t("game.teamResultPerPersonAssertive")}:{" "}
-                            {currentCard.teamResults.perPersonAssertiveDescription}
-                          </p>
-                        )
-                      }
-                      return null
-                    })()}
-                  </div>
-                )}
+        <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+          <CardHeader className="p-5 py-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">
+                {t("game.teamScore")}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <span dir="ltr" className="text-blue-600 dark:text-blue-400 rtl:persian-number font-black text-xl">
+                  {roundScores.teamScore}
+                </span>
+                <ChartColumnIncreasing className="size-8 opacity-50 text-blue-600 dark:text-blue-400" />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {(() => {
+              const lastRoundReactions =
+                gameState.reactions?.[gameState.reactions.length - 1]
+              if (!lastRoundReactions || !currentCard) return null
+
+              const assertiveCount = lastRoundReactions.reactions.filter(
+                (r) => r.reaction === "assertive"
+              ).length
+              const totalPlayers = lastRoundReactions.reactions.length
+
+              // Calculate team gains from reactions
+              let teamGain = 0
+              let teamGainDescription = ""
+
+              if (assertiveCount === totalPlayers && currentCard.teamResults.allAssertive !== undefined) {
+                teamGain = currentCard.teamResults.allAssertive
+                teamGainDescription = currentCard.teamResults.allAssertiveDescription || ""
+              } else if (assertiveCount === 1 && currentCard.teamResults.onlyOneAssertive !== undefined) {
+                teamGain = currentCard.teamResults.onlyOneAssertive
+                teamGainDescription = currentCard.teamResults.onlyOneAssertiveDescription || ""
+              } else if (currentCard.teamResults.perPersonAssertive !== undefined) {
+                teamGain = assertiveCount * currentCard.teamResults.perPersonAssertive
+                teamGainDescription = currentCard.teamResults.perPersonAssertiveDescription || ""
+              }
+
+              // Calculate team costs from burnout
+              const burnoutEvents = roundScores.burnoutEvents || []
+              const burnoutPenalty = burnoutEvents.length * -10
+
+              const gains: Array<{
+                kpi: string
+                change: number
+                description: string
+              }> = []
+              const costs: Array<{
+                kpi: string
+                change: number
+                description: string
+              }> = []
+
+              if (teamGain > 0) {
+                gains.push({
+                  kpi: t("game.teamScoreGain"),
+                  change: teamGain,
+                  description: teamGainDescription,
+                })
+              }
+
+              if (burnoutPenalty < 0) {
+                const penaltyDescription = burnoutEvents.length === 1
+                  ? t("game.burnoutTeamPenaltyDescription", {
+                    playerName: (() => {
+                      const burnoutPlayer = players.find(p => p.id === burnoutEvents[0].playerId)
+                      return burnoutPlayer ? `${burnoutPlayer.firstName} ${burnoutPlayer.lastName}` : ""
+                    })()
+                  })
+                  : t("game.burnoutTeamPenaltyMultiple", { count: burnoutEvents.length })
+
+                costs.push({
+                  kpi: t("game.burnoutTeamPenalty"),
+                  change: burnoutPenalty,
+                  description: penaltyDescription,
+                })
+              }
+
+              return (
+                <>
+                  {/* Team Gains */}
+                  {gains.length > 0 && (
+                    <div className="border-t border-blue-200 dark:border-blue-800 py-2 px-5 space-y-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          {t("game.teamProfit")}
+                        </h3>
+                        <Smile className="size-6 opacity-50 text-green-600 dark:text-green-400" />
+                      </div>
+                      {gains.map((gain, index) => {
+                        return (
+                          <div key={index} className="space-y-1">
+                            <p className="font-medium w-full flex justify-between">
+                              <span>{gain.kpi}:</span>
+                              <span className="text-green-800 dark:text-green-200 rtl:persian-number font-black tracking-wider" dir="ltr">{gain.change}</span>
+                            </p>
+                            {gain.description && (
+                              <p className="font-medium w-full flex justify-between">
+                                <span className="font-light">{gain.description}</span>
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Team Costs */}
+                  {costs.length > 0 && (
+                    <div className="border-t border-blue-200 dark:border-blue-800 py-2 px-5 space-y-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold flex items-center gap-2">
+                          {t("game.teamCost")}
+                        </h3>
+                        <Frown className="size-6 opacity-50 text-red-600 dark:text-red-400" />
+                      </div>
+                      {costs.map((cost, index) => {
+                        return (
+                          <div key={index} className="space-y-1">
+                            <p className="font-medium w-full flex justify-between">
+                              <span>{cost.kpi}:</span>
+                              <span className="text-red-800 dark:text-red-200 rtl:persian-number font-black tracking-wider" dir="ltr">{cost.change}</span>
+                            </p>
+                            {cost.description && (
+                              <p className="font-medium w-full flex justify-between">
+                                <span className="font-light">{cost.description}</span>
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Bottom Button */}
@@ -580,7 +889,9 @@ export default function ResultsPage() {
           onClick={handleNextRound}
           className="bg-green-500 hover:bg-green-600 w-full"
         >
-          {t("game.nextRound")}
+          {gameState && gameState.currentRound >= parseInt(process.env.NEXT_PUBLIC_MAX_ROUNDS || "8", 10)
+            ? t("game.finalResults.viewFinalResults")
+            : t("game.nextRound")}
         </Button>
       </div>
 
