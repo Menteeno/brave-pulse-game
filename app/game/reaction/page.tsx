@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "nextjs-toploader/app"
 import Image from "next/image"
 import { Play, Pause, RotateCcw } from "lucide-react"
 import { PlayersHeader } from "@/components/PlayersHeader"
@@ -17,7 +18,7 @@ import { cn } from "@/lib/utils"
 import braveGif from "@/app/assets/images/brave.gif"
 import savageGif from "@/app/assets/images/savage.gif"
 
-export default function ReactionPage() {
+function ReactionPageContent() {
   const { t, i18n } = useTranslation("common")
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -36,13 +37,41 @@ export default function ReactionPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const [allCards, setAllCards] = useState<SituationCard[]>([])
+  const isInitializedRef = useRef<string | null>(null)
 
   useEffect(() => {
+    const playerId = searchParams.get("playerId")
+
+    // Reset if playerId changed (allow re-initialization for different players)
+    if (isInitializedRef.current !== playerId) {
+      isInitializedRef.current = null
+    }
+
+    // Prevent re-initialization if already initialized for this playerId
+    if (isInitializedRef.current === playerId) return
+
     const initializePage = async () => {
       try {
+        // Mark as initializing to prevent concurrent runs
+        isInitializedRef.current = playerId
+
         setIsLoading(true)
 
-        // Load players, game state, and cards in parallel
+        // Optimistic: Load cached data first
+        const [cachedUsers, cachedState] = await Promise.all([
+          getAllUsers(),
+          getGameState(),
+        ])
+
+        // Show cached data immediately
+        if (cachedUsers.length > 0) {
+          setPlayers(cachedUsers)
+        }
+        if (cachedState) {
+          setGameState(cachedState)
+        }
+
+        // Load fresh data in parallel
         const [users, state, cards] = await Promise.all([
           getAllUsers(),
           getGameState(),
@@ -63,8 +92,7 @@ export default function ReactionPage() {
 
         setGameState(state)
 
-        // Get player ID from URL
-        const playerId = searchParams.get("playerId")
+        // Get player ID from URL (use the one from outer scope)
         if (!playerId) {
           // No player ID - redirect to get first non-passive player
           await redirectToNextPlayer(state, users)
@@ -109,6 +137,8 @@ export default function ReactionPage() {
         saveCheckpoint(`/game/reaction?playerId=${playerId}`).catch(console.error)
       } catch (error) {
         console.error("Failed to initialize reaction page:", error)
+        // Reset on error so it can retry
+        isInitializedRef.current = null
         router.push("/game")
       } finally {
         setIsLoading(false)
@@ -116,7 +146,8 @@ export default function ReactionPage() {
     }
 
     initializePage()
-  }, [router, searchParams])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, currentLanguage])
 
   const redirectToNextPlayer = async (
     state: GameState,
@@ -135,9 +166,9 @@ export default function ReactionPage() {
     )
 
     if (nonPassiveReactions.length === 0) {
-      // All passive - calculate scores and go to results
-      await calculateAndSaveScores(state)
+      // All passive - navigate immediately, calculate scores in background
       router.push("/game/results")
+      calculateAndSaveScores(state).catch(console.error)
       return
     }
 
@@ -153,42 +184,49 @@ export default function ReactionPage() {
     const nextIndex = currentIndex + 1
     if (nextIndex >= nonPassiveReactions.length) {
       // All players done - check if any assertive players need customCost selection
-      const cards = await loadSituationCards(currentLanguage)
-      const currentCardId = state.cardOrder[state.currentCardIndex]
-      const card = cards.find((c) => c.id === currentCardId)
+      // Load cards in background (non-blocking)
+      loadSituationCards(currentLanguage).then((cards) => {
+        const currentCardId = state.cardOrder[state.currentCardIndex]
+        const card = cards.find((c) => c.id === currentCardId)
 
-      if (card) {
-        const reactionData = card.individualGainAndCost.assertive
-        const hasCustomCost = reactionData?.customCost && reactionData.customCost !== 0
+        if (card) {
+          const reactionData = card.individualGainAndCost.assertive
+          const hasCustomCost = reactionData?.customCost && reactionData.customCost !== 0
 
-        if (hasCustomCost) {
-          // Check if any assertive players need customCost selection
-          const assertiveReactions = nonPassiveReactions.filter(
-            (r) => r.reaction === "assertive"
-          )
-
-          const playersNeedingSelection = assertiveReactions.filter((reaction) => {
-            const existingFeedback = lastRoundReactions.feedback?.find(
-              (f) => f.playerId === reaction.playerId
+          if (hasCustomCost) {
+            // Check if any assertive players need customCost selection
+            const assertiveReactions = nonPassiveReactions.filter(
+              (r) => r.reaction === "assertive"
             )
-            return !existingFeedback?.customCostKpi
-          })
 
-          if (playersNeedingSelection.length > 0) {
-            // Redirect to custom cost selection page
-            const firstPlayerId = playersNeedingSelection[0].playerId
-            router.push(`/game/custom-cost?playerId=${firstPlayerId}`)
-            return
+            const playersNeedingSelection = assertiveReactions.filter((reaction) => {
+              const existingFeedback = lastRoundReactions.feedback?.find(
+                (f) => f.playerId === reaction.playerId
+              )
+              return !existingFeedback?.customCostKpi
+            })
+
+            if (playersNeedingSelection.length > 0) {
+              // Redirect to custom cost selection page
+              const firstPlayerId = playersNeedingSelection[0].playerId
+              router.push(`/game/custom-cost?playerId=${firstPlayerId}`)
+              return
+            }
           }
         }
-      }
 
-      // No customCost or all selected - calculate scores and go to results
-      await calculateAndSaveScores(state)
-      router.push("/game/results")
+        // No customCost or all selected - navigate immediately, calculate in background
+        router.push("/game/results")
+        calculateAndSaveScores(state).catch(console.error)
+      }).catch(() => {
+        // If card loading fails, just navigate to results
+        router.push("/game/results")
+        calculateAndSaveScores(state).catch(console.error)
+      })
       return
     }
 
+    // Navigate to next player immediately
     const nextPlayerId = nonPassiveReactions[nextIndex].playerId
     router.push(`/game/reaction?playerId=${nextPlayerId}`)
   }
@@ -200,13 +238,22 @@ export default function ReactionPage() {
       const existingRoundScore = existingScores.find(
         (s) => s.round === state.currentRound
       )
-      
+
       if (existingRoundScore) {
         // Scores already exist for this round, don't recalculate
         return
       }
-      
-      const roundScores = await calculateRoundScores(state, currentLanguage, state.reactions?.[state.reactions.length - 1]?.feedback)
+
+      // Re-fetch game state to get the latest feedback (in case last feedback was just saved)
+      const latestGameState = await getGameState()
+      if (!latestGameState) {
+        throw new Error("Game state not found")
+      }
+
+      // Use the latest feedback from the updated game state
+      const latestFeedback = latestGameState.reactions?.[latestGameState.reactions.length - 1]?.feedback
+
+      const roundScores = await calculateRoundScores(latestGameState, currentLanguage, latestFeedback)
       await saveRoundScores(roundScores)
     } catch (error) {
       console.error("Failed to calculate scores:", error)
@@ -264,22 +311,20 @@ export default function ReactionPage() {
   }
 
   const handleFeedbackSave = async (feedback: ReactionFeedback) => {
-    // Save feedback to game state
-    try {
-      await saveReactionFeedback(currentPlayer!.id, feedback)
-      // Update game state
-      const updatedState = await getGameState()
-      if (updatedState) {
-        setGameState(updatedState)
-      }
-    } catch (error) {
-      console.error("Failed to save feedback:", error)
-    }
-    
-    // Proceed to next player
+    if (!currentPlayer || !gameState) return
+
+    // Wait for feedback to be saved before navigating
+    await saveReactionFeedback(currentPlayer.id, feedback)
+
+    // Get updated game state after saving feedback
     const updatedState = await getGameState()
-    if (!updatedState || !currentPlayer) return
-    await redirectToNextPlayer(updatedState, players, currentPlayer.id)
+    if (!updatedState) {
+      console.error("Failed to get updated game state")
+      return
+    }
+
+    // Navigate with updated state
+    redirectToNextPlayer(updatedState, players, currentPlayer.id)
   }
 
   const formatTime = (seconds: number): string => {
@@ -351,7 +396,7 @@ export default function ReactionPage() {
             reaction: t(`game.reaction.${reactionType}`),
             activePlayer: gameState.activePlayerId
               ? players.find((p) => p.id === gameState.activePlayerId)
-                  ?.firstName || ""
+                ?.firstName || ""
               : "",
           })}
         </p>
@@ -433,6 +478,21 @@ export default function ReactionPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function ReactionPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen px-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-lg font-medium text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ReactionPageContent />
+    </Suspense>
   )
 }
 
