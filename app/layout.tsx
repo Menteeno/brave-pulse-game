@@ -21,12 +21,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang={defaultLanguage} dir={defaultDirection} suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+      </head>
       <body>
-        <NextTopLoader />
         <ThemeProvider>
           <I18nProvider>
             <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-950">
               <div className="w-full max-w-md mx-auto flex-1 flex flex-col bg-white dark:bg-gray-900">
+                <NextTopLoader />
                 <main className="flex-1">{children}</main>
               </div>
             </div>
