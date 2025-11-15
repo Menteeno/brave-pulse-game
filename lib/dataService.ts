@@ -1,7 +1,8 @@
 /**
- * Data Service - Local Storage Abstraction Layer
+ * Data Service - Local Storage Abstraction Layer with Memory Cache
  * 
  * This service provides a clean interface for data persistence using localStorage.
+ * Includes memory caching for instant reads and batch operations for performance.
  * The implementation is designed to be easily replaceable with a real backend API
  * in the future without changing component code.
  */
@@ -16,6 +17,38 @@ const STORAGE_KEYS = {
   GAME_STATE: "bravery_game_state",
   CHECKPOINT: "bravery_game_checkpoint",
 } as const
+
+// Memory cache for instant reads (invalidated on writes)
+const memoryCache: {
+  users?: User[]
+  gameState?: GameState | null
+  checkpoint?: string | null
+  lastSync: { [key: string]: number }
+} = {
+  lastSync: {},
+}
+
+// Cache TTL: 5 seconds (for development, can be longer in production)
+const CACHE_TTL = 5000
+
+/**
+ * Check if cache is still valid
+ */
+function isCacheValid(key: string): boolean {
+  const lastSync = memoryCache.lastSync[key]
+  if (!lastSync) return false
+  return Date.now() - lastSync < CACHE_TTL
+}
+
+/**
+ * Invalidate cache for a specific key
+ */
+function invalidateCache(key: string): void {
+  delete memoryCache.lastSync[key]
+  if (key === STORAGE_KEYS.USERS) delete memoryCache.users
+  if (key === STORAGE_KEYS.GAME_STATE) delete memoryCache.gameState
+  if (key === STORAGE_KEYS.CHECKPOINT) delete memoryCache.checkpoint
+}
 
 /**
  * Error handler for localStorage operations
@@ -120,11 +153,23 @@ export async function loadInitialStages(): Promise<GameStage[]> {
 /**
  * Retrieves all registered users from storage
  * Returns an empty array if none are found
+ * Uses memory cache for instant reads
  */
 export async function getAllUsers(): Promise<User[]> {
   try {
+    // Check memory cache first
+    if (memoryCache.users && isCacheValid(STORAGE_KEYS.USERS)) {
+      return memoryCache.users
+    }
+
     const users = getFromStorage<User[]>(STORAGE_KEYS.USERS)
-    return users && Array.isArray(users) ? users : []
+    const result = users && Array.isArray(users) ? users : []
+    
+    // Update cache
+    memoryCache.users = result
+    memoryCache.lastSync[STORAGE_KEYS.USERS] = Date.now()
+    
+    return result
   } catch (error) {
     handleStorageError("getAllUsers", error)
     return []
@@ -148,6 +193,7 @@ export async function getUserById(userId: string): Promise<User | null> {
 /**
  * Adds a new user to storage or updates an existing user
  * If a user with the same ID already exists, it updates their details
+ * Updates memory cache immediately for instant UI updates
  */
 export async function addUser(user: User): Promise<void> {
   try {
@@ -169,8 +215,14 @@ export async function addUser(user: User): Promise<void> {
       users.push(userToSave)
     }
 
+    // Update memory cache immediately (optimistic update)
+    memoryCache.users = users
+    memoryCache.lastSync[STORAGE_KEYS.USERS] = Date.now()
+
     const success = setToStorage(STORAGE_KEYS.USERS, users)
     if (!success) {
+      // Rollback cache on failure
+      invalidateCache(STORAGE_KEYS.USERS)
       throw new Error("Failed to save user to storage")
     }
   } catch (error) {
@@ -226,14 +278,21 @@ export async function getProgressByUserId(userId: string): Promise<GameProgress 
 
 /**
  * Deletes a user from storage by their ID
+ * Updates memory cache immediately for instant UI updates
  */
 export async function deleteUser(userId: string): Promise<void> {
   try {
     const users = await getAllUsers()
     const filteredUsers = users.filter((user) => user.id !== userId)
 
+    // Update memory cache immediately (optimistic update)
+    memoryCache.users = filteredUsers
+    memoryCache.lastSync[STORAGE_KEYS.USERS] = Date.now()
+
     const success = setToStorage(STORAGE_KEYS.USERS, filteredUsers)
     if (!success) {
+      // Rollback cache on failure
+      invalidateCache(STORAGE_KEYS.USERS)
       throw new Error("Failed to delete user from storage")
     }
   } catch (error) {
@@ -244,11 +303,18 @@ export async function deleteUser(userId: string): Promise<void> {
 
 /**
  * Saves the current game state
+ * Updates memory cache immediately for instant reads
  */
 export async function saveGameState(gameState: GameState): Promise<void> {
   try {
+    // Update memory cache immediately (optimistic update)
+    memoryCache.gameState = gameState
+    memoryCache.lastSync[STORAGE_KEYS.GAME_STATE] = Date.now()
+
     const success = setToStorage(STORAGE_KEYS.GAME_STATE, gameState)
     if (!success) {
+      // Rollback cache on failure
+      invalidateCache(STORAGE_KEYS.GAME_STATE)
       throw new Error("Failed to save game state to storage")
     }
 
@@ -266,10 +332,22 @@ export async function saveGameState(gameState: GameState): Promise<void> {
 
 /**
  * Retrieves the current game state
+ * Uses memory cache for instant reads
  */
 export async function getGameState(): Promise<GameState | null> {
   try {
-    return getFromStorage<GameState>(STORAGE_KEYS.GAME_STATE)
+    // Check memory cache first
+    if (memoryCache.gameState !== undefined && isCacheValid(STORAGE_KEYS.GAME_STATE)) {
+      return memoryCache.gameState
+    }
+
+    const result = getFromStorage<GameState>(STORAGE_KEYS.GAME_STATE)
+    
+    // Update cache
+    memoryCache.gameState = result
+    memoryCache.lastSync[STORAGE_KEYS.GAME_STATE] = Date.now()
+    
+    return result
   } catch (error) {
     handleStorageError("getGameState", error)
     return null
@@ -278,13 +356,25 @@ export async function getGameState(): Promise<GameState | null> {
 
 /**
  * Gets the last checkpoint route
+ * Uses memory cache for instant reads
  */
 export async function getCheckpoint(): Promise<string | null> {
   try {
+    // Check memory cache first
+    if (memoryCache.checkpoint !== undefined && isCacheValid(STORAGE_KEYS.CHECKPOINT)) {
+      return memoryCache.checkpoint
+    }
+
     const checkpoint = getFromStorage<{ route: string; timestamp: string }>(
       STORAGE_KEYS.CHECKPOINT
     )
-    return checkpoint?.route || null
+    const result = checkpoint?.route || null
+    
+    // Update cache
+    memoryCache.checkpoint = result
+    memoryCache.lastSync[STORAGE_KEYS.CHECKPOINT] = Date.now()
+    
+    return result
   } catch (error) {
     handleStorageError("getCheckpoint", error)
     return null
@@ -293,15 +383,22 @@ export async function getCheckpoint(): Promise<string | null> {
 
 /**
  * Save checkpoint for a specific route
+ * Updates memory cache immediately
  */
 export async function saveCheckpoint(route: string): Promise<void> {
   try {
+    // Update memory cache immediately (optimistic update)
+    memoryCache.checkpoint = route
+    memoryCache.lastSync[STORAGE_KEYS.CHECKPOINT] = Date.now()
+
     const checkpoint = {
       route,
       timestamp: new Date().toISOString(),
     }
     const success = setToStorage(STORAGE_KEYS.CHECKPOINT, checkpoint)
     if (!success) {
+      // Rollback cache on failure
+      invalidateCache(STORAGE_KEYS.CHECKPOINT)
       throw new Error("Failed to save checkpoint to storage")
     }
   } catch (error) {
@@ -312,15 +409,38 @@ export async function saveCheckpoint(route: string): Promise<void> {
 
 /**
  * Clears game state and checkpoint
+ * Also clears memory cache
  */
 export async function clearGameState(): Promise<void> {
   try {
     if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEYS.GAME_STATE)
       localStorage.removeItem(STORAGE_KEYS.CHECKPOINT)
+      
+      // Clear memory cache
+      invalidateCache(STORAGE_KEYS.GAME_STATE)
+      invalidateCache(STORAGE_KEYS.CHECKPOINT)
     }
   } catch (error) {
     handleStorageError("clearGameState", error)
   }
+}
+
+/**
+ * Prefetch all critical data in parallel
+ * Use this before navigation for instant page loads
+ */
+export async function prefetchGameData(): Promise<{
+  users: User[]
+  gameState: GameState | null
+  checkpoint: string | null
+}> {
+  const [users, gameState, checkpoint] = await Promise.all([
+    getAllUsers(),
+    getGameState(),
+    getCheckpoint(),
+  ])
+  
+  return { users, gameState, checkpoint }
 }
 
