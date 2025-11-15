@@ -128,6 +128,25 @@ export interface RoundScores {
   playerScores: PlayerScores[] // Scores after this round
   teamScore: number // Team score after this round
   feedback?: ReactionFeedback[] // Feedback from active player for assertive/aggressive reactions
+  fatiguedPlayers?: PlayerFatigue[] // Players who experienced fatigue in this round
+  burnoutEvents?: PlayerBurnout[] // Players who experienced burnout in this round
+}
+
+/**
+ * Represents a player's fatigue status
+ */
+export interface PlayerFatigue {
+  playerId: string
+  round: number // The round in which the player is fatigued (cannot play assertively in next round)
+}
+
+/**
+ * Represents a burnout event for a player
+ */
+export interface PlayerBurnout {
+  playerId: string
+  round: number // The round in which burnout occurred
+  kpi: "selfRespect" | "relationshipHealth" | "goalAchievement" // Which KPI reached zero
 }
 
 /**
@@ -145,6 +164,8 @@ export interface GameState {
   reactions?: RoundReactions[] // Array of reactions for each round
   scores?: RoundScores[] // Array of scores for each round
   teamScore: number // Current team score
+  fatiguedPlayers?: PlayerFatigue[] // Players who are fatigued and cannot play assertively
+  burnoutHistory?: PlayerBurnout[] // Complete history of all burnout events
   startedAt: string
   lastUpdatedAt: string
 }
