@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { useRouter } from "next/navigation"
+import { useRouter } from "nextjs-toploader/app"
+import Link from "next/link"
 import Image from "next/image"
 import { Play, Pause, RotateCcw } from "lucide-react"
 import { PlayersHeader } from "@/components/PlayersHeader"
@@ -28,13 +29,34 @@ export default function ThinkingPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const [allCards, setAllCards] = useState<SituationCard[]>([])
+  const isInitializedRef = useRef(false)
 
   useEffect(() => {
+    // Prevent re-initialization if already initialized
+    if (isInitializedRef.current) return
+
     const initializePage = async () => {
       try {
+        // Mark as initializing to prevent concurrent runs
+        isInitializedRef.current = true
+
         setIsLoading(true)
 
-        // Load players, game state, and cards in parallel
+        // Optimistic: Load cached data first
+        const [cachedUsers, cachedState] = await Promise.all([
+          getAllUsers(),
+          getGameState(),
+        ])
+
+        // Show cached data immediately
+        if (cachedUsers.length > 0) {
+          setPlayers(cachedUsers)
+        }
+        if (cachedState) {
+          setGameState(cachedState)
+        }
+
+        // Load fresh data in parallel
         const [users, state, cards] = await Promise.all([
           getAllUsers(),
           getGameState(),
@@ -81,6 +103,8 @@ export default function ThinkingPage() {
         saveCheckpoint("/game/thinking").catch(console.error)
       } catch (error) {
         console.error("Failed to initialize thinking page:", error)
+        // Reset on error so it can retry
+        isInitializedRef.current = false
         router.push("/game")
       } finally {
         setIsLoading(false)
@@ -88,7 +112,8 @@ export default function ThinkingPage() {
     }
 
     initializePage()
-  }, [router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLanguage])
 
   // Get players who have non-passive reactions
   const getNonPassivePlayers = (): User[] => {
@@ -258,14 +283,13 @@ export default function ThinkingPage() {
 
       {/* Bottom Button */}
       <div className="mt-auto pt-6">
-        <Button
-          onClick={() => {
-            router.push("/game/secret")
-          }}
-          className="bg-green-500 hover:bg-green-600 w-full"
-        >
-          {t("game.thinkingDone")}
-        </Button>
+        <Link href="/game/secret">
+          <Button
+            className="bg-green-500 hover:bg-green-600 w-full"
+          >
+            {t("game.thinkingDone")}
+          </Button>
+        </Link>
       </div>
     </div>
   )
