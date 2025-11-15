@@ -6,7 +6,7 @@
   "tailwind": {
     "config": "tailwind.config.ts",
     "css": "app/globals.css",
-    "baseColor": "green",
+    "baseColor": "slate",
     "cssVariables": true,
     "prefix": ""
   },
@@ -16,4 +16,3 @@
     "ui": "@/components/ui"
   }
 }
-
