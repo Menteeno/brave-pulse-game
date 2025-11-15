@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
-import { useRouter } from "next/navigation"
+import { useRouter } from "nextjs-toploader/app"
 import Image from "next/image"
 import { PlayersHeader } from "@/components/PlayersHeader"
 import { CardDrawer } from "@/components/CardDrawer"
@@ -40,13 +40,35 @@ export default function GamePage() {
     const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
     const [existingReactions, setExistingReactions] = useState<Record<string, ReactionType>>({})
+    const isInitializedRef = useRef(false)
 
     useEffect(() => {
+        // Prevent re-initialization if already initialized
+        if (isInitializedRef.current) return
+
         const initializeGame = async () => {
             try {
+                // Mark as initializing to prevent concurrent runs
+                isInitializedRef.current = true
+
+                // Optimistic: Show UI immediately, load data in background
                 setIsLoading(true)
 
-                // Load players and cards in parallel
+                // Try to get cached data first (instant)
+                const cachedUsers = await getAllUsers()
+                const cachedState = await getGameState()
+
+                // Show cached data immediately if available
+                if (cachedUsers.length > 0) {
+                    setPlayers(cachedUsers)
+                }
+                if (cachedState) {
+                    setGameState(cachedState)
+                    setIsCardRevealed(cachedState.isCardRevealed)
+                    setSelectedCardId(cachedState.selectedCardId)
+                }
+
+                // Load fresh data in parallel (non-blocking)
                 const [users, cards] = await Promise.all([
                     getAllUsers(),
                     loadSituationCards(currentLanguage)
@@ -56,6 +78,8 @@ export default function GamePage() {
                     router.push("/players")
                     return
                 }
+
+                // Update with fresh data
                 setPlayers(users)
                 setAllCards(cards)
 
@@ -92,13 +116,16 @@ export default function GamePage() {
                 }
             } catch (error) {
                 console.error("Failed to initialize game:", error)
+                // Reset on error so it can retry
+                isInitializedRef.current = false
             } finally {
                 setIsLoading(false)
             }
         }
 
         initializeGame()
-    }, [router, currentLanguage])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentLanguage])
 
     const handleCardStackClick = async () => {
         if (isCardRevealed || !gameState) return
@@ -132,35 +159,56 @@ export default function GamePage() {
 
     const handleReactionsSave = async (reactions: Record<string, ReactionType>) => {
         try {
-            await saveReactions(reactions)
-            // Update game state
-            const updatedState = await getGameState()
-            if (updatedState) {
-                setGameState(updatedState)
+            if (!gameState) return
 
-                // Check if any player has non-passive reaction
-                const lastRoundReactions = updatedState.reactions?.[updatedState.reactions.length - 1]
-                const hasNonPassive = lastRoundReactions?.reactions.some(
-                    (r) => r.reaction !== "passive"
-                )
+            // Convert reactions to PlayerReaction array for optimistic update
+            const playerReactions = Object.entries(reactions).map(
+                ([playerId, reaction]) => ({ playerId, reaction })
+            )
 
-                if (hasNonPassive) {
-                    // Navigate to thinking page
-                    router.push("/game/thinking")
-                } else {
-                    // All passive - calculate scores and go to results
-                    try {
-                        const roundScores = await calculateRoundScores(
-                            updatedState,
-                            currentLanguage,
-                            updatedState.reactions?.[updatedState.reactions.length - 1]?.feedback
-                        )
-                        await saveRoundScores(roundScores)
-                    } catch (error) {
-                        console.error("Failed to calculate scores:", error)
+            const roundReaction = {
+                round: gameState.currentRound,
+                cardId: gameState.currentCardId || "",
+                reactions: playerReactions,
+            }
+
+            // Optimistically update local state immediately
+            const optimisticState = {
+                ...gameState,
+                reactions: [...(gameState.reactions || []), roundReaction],
+            }
+            setGameState(optimisticState)
+
+            // Save reactions in background (cache updates immediately)
+            saveReactions(reactions).catch(console.error)
+
+            // Check if any player has non-passive reaction (using optimistic state)
+            const hasNonPassive = playerReactions.some(
+                (r) => r.reaction !== "passive"
+            )
+
+            // Navigate IMMEDIATELY (don't wait for any async operations)
+            if (hasNonPassive) {
+                router.push("/game/thinking")
+            } else {
+                // All passive - navigate immediately, calculate scores in background
+                router.push("/game/results")
+
+                // Calculate scores in background (non-blocking)
+                getGameState().then(async (updatedState) => {
+                    if (updatedState) {
+                        try {
+                            const roundScores = await calculateRoundScores(
+                                updatedState,
+                                currentLanguage,
+                                updatedState.reactions?.[updatedState.reactions.length - 1]?.feedback
+                            )
+                            await saveRoundScores(roundScores)
+                        } catch (error) {
+                            console.error("Failed to calculate scores:", error)
+                        }
                     }
-                    router.push("/game/results")
-                }
+                }).catch(console.error)
             }
         } catch (error) {
             console.error("Failed to save reactions:", error)
@@ -368,6 +416,7 @@ export default function GamePage() {
                 existingReactions={Object.keys(existingReactions).length > 0 ? existingReactions : undefined}
                 disabled={Object.keys(existingReactions).length > 0}
                 onContinue={handleReactionsContinue}
+                gameState={gameState}
             />
 
             {/* Player Profile Modal */}
