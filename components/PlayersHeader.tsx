@@ -1,10 +1,11 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import type { User } from "@/lib/types"
+import { SettingsDrawer } from "@/components/SettingsDrawer"
 
 interface PlayersHeaderProps {
   players: User[]
@@ -23,14 +24,47 @@ export function PlayersHeader({
 }: PlayersHeaderProps) {
   const { t } = useTranslation("common")
   const [isExpanded, setIsExpanded] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [clickCount, setClickCount] = useState(0)
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const activePlayer = players.find((p) => p.id === activePlayerId)
+  // Safety check: ensure players is an array
+  const safePlayers = players || []
+  const activePlayer = safePlayers.find((p) => p.id === activePlayerId)
   const activePlayerName = activePlayer
     ? `${activePlayer.firstName} ${activePlayer.lastName}`
     : ""
 
   const handleAvatarClick = () => {
     setIsExpanded(!isExpanded)
+  }
+
+  // Reset click counter after 2 seconds of inactivity
+  useEffect(() => {
+    if (clickCount > 0) {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current)
+      }
+      clickTimeoutRef.current = setTimeout(() => {
+        setClickCount(0)
+      }, 2000)
+    }
+
+    return () => {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current)
+      }
+    }
+  }, [clickCount])
+
+  const handlePlayerNameClick = () => {
+    const newCount = clickCount + 1
+    setClickCount(newCount)
+
+    if (newCount >= 5) {
+      setSettingsOpen(true)
+      setClickCount(0)
+    }
   }
 
   return (
@@ -47,11 +81,14 @@ export function PlayersHeader({
           <div className="flex flex-col text-start">
             <p className="text-lg font-medium text-foreground leading-tight">
               {t("game.thisRoundIs")}
-            </p>
-            <p className="text-lg font-medium text-foreground leading-tight">
-              <span className="text-blue-600 font-semibold">
+              {" "}
+              <span
+                className="text-blue-600 font-semibold select-none"
+                onClick={handlePlayerNameClick}
+              >
                 {activePlayerName}
-              </span>{" "}
+              </span>
+              {" "}
               {t("game.turn")}
             </p>
           </div>
@@ -67,7 +104,7 @@ export function PlayersHeader({
           </div>
           {/* Avatar Stack - Collapsed State on End */}
           <div className="flex items-center gap-0">
-            {players.map((player, index) => {
+            {safePlayers.map((player, index) => {
               const avatarUrl = `https://unavatar.io/${player.email}`
               const displayName = `${player.firstName} ${player.lastName}`
               const isActive = player.id === activePlayerId
@@ -75,10 +112,10 @@ export function PlayersHeader({
               return (
                 <button
                   key={player.id}
-                  onClick={handleAvatarClick}
+                  onClick={() => onPlayerClick?.(player)}
                   className={cn(
-                    "relative transition-transform hover:scale-110",
-                    index > 0 && "-ms-3"
+                    "relative transition-transform hover:scale-110 hover:z-10",
+                    index > 0 && "-ms-5"
                   )}
                 >
                   <Avatar
@@ -107,12 +144,12 @@ export function PlayersHeader({
           "flex flex-col gap-3 transition-all duration-300 w-full",
           isExpanded
             ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-[-20px] pointer-events-none absolute top-0"
+            : "opacity-0 translate-y-[-40px] pointer-events-none absolute top-0"
         )}
       >
         {/* First Row */}
         <div className="grid grid-cols-4 gap-3">
-          {players.slice(0, 4).map((player) => {
+          {safePlayers.slice(0, 4).map((player) => {
             const avatarUrl = `https://unavatar.io/${player.email}`
             const displayName = `${player.firstName} ${player.lastName}`
             const isActive = player.id === activePlayerId
@@ -152,9 +189,9 @@ export function PlayersHeader({
           })}
         </div>
         {/* Second Row */}
-        {players.length > 4 && (
+        {safePlayers.length > 4 && (
           <div className="grid grid-cols-4 gap-3">
-            {players.slice(4).map((player) => {
+            {safePlayers.slice(4).map((player) => {
               const avatarUrl = `https://unavatar.io/${player.email}`
               const displayName = `${player.firstName} ${player.lastName}`
               const isActive = player.id === activePlayerId
@@ -197,15 +234,20 @@ export function PlayersHeader({
       </div>
 
       {/* Close button when expanded */}
-      {isExpanded && (
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="absolute top-0 end-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {t("game.close")}
-        </button>
-      )}
-    </div>
+      {
+        isExpanded && (
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="absolute top-0 end-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t("game.close")}
+          </button>
+        )
+      }
+
+      {/* Settings Drawer */}
+      <SettingsDrawer open={settingsOpen} onOpenChange={setSettingsOpen} />
+    </div >
   )
 }
 
