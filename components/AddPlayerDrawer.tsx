@@ -18,7 +18,7 @@ import { Plus } from "lucide-react"
 import type { User } from "@/lib/types"
 
 interface AddPlayerDrawerProps {
-  onAdd: (userData: Omit<User, "id" | "createdAt" | "updatedAt">) => void
+  onAdd: (userData: Omit<User, "id" | "createdAt" | "updatedAt">) => Promise<{ success?: boolean; error?: string }>
 }
 
 export function AddPlayerDrawer({ onAdd }: AddPlayerDrawerProps) {
@@ -29,23 +29,41 @@ export function AddPlayerDrawer({ onAdd }: AddPlayerDrawerProps) {
     lastName: "",
     email: "",
   })
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (error) setError(null)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (formData.firstName && formData.lastName && formData.email) {
-      onAdd(formData)
-      setFormData({ firstName: "", lastName: "", email: "" })
-      setOpen(false)
+      setError(null)
+      const result = await onAdd(formData)
+      if (result.error) {
+        setError(result.error)
+      } else {
+        setFormData({ firstName: "", lastName: "", email: "" })
+        setOpen(false)
+        setError(null)
+      }
     }
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen)
+        if (!newOpen) {
+          setError(null)
+          setFormData({ firstName: "", lastName: "", email: "" })
+        }
+      }}
+    >
       <DrawerTrigger asChild>
         <button className="flex flex-col items-center flex-shrink-0">
           <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center border-2 border-dashed border-gray-400">
@@ -61,7 +79,7 @@ export function AddPlayerDrawer({ onAdd }: AddPlayerDrawerProps) {
             {t("players.addTeammateSubtitle")}
           </DrawerDescription>
         </DrawerHeader>
-        <form onSubmit={handleSubmit} className="px-4 pb-4 space-y-4">
+        <form onSubmit={handleSubmit} className="px-4 pb-4 space-y-4" onReset={() => setError(null)}>
           <div className="grid grid-cols-2 gap-4">
             <Input
               name="firstName"
@@ -78,14 +96,20 @@ export function AddPlayerDrawer({ onAdd }: AddPlayerDrawerProps) {
               required
             />
           </div>
-          <Input
-            name="email"
-            type="email"
-            placeholder={t("players.email")}
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
+          <div className="space-y-2">
+            <Input
+              name="email"
+              type="email"
+              placeholder={t("players.email")}
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className={error ? "border-destructive" : ""}
+            />
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+          </div>
           <DrawerFooter>
             <Button type="submit" className="bg-green-500 hover:bg-green-600">
               {t("players.addTeammateButton")}
