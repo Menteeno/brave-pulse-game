@@ -1,12 +1,12 @@
 {
   "header": {
-    "title": "Bravery Game",
+    "title": "BravePulse",
     "nav": {
       "home": "Home"
     }
   },
   "home": {
-    "title": "Welcome to Bravery Game",
+    "title": "Welcome to BravePulse",
     "description": "This is a sample page demonstrating the setup with Next.js, shadcn/ui, and i18n.",
     "button": "Get Started"
   }
