@@ -6,7 +6,7 @@ import { getDirection } from "@/lib/rtl"
 import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
-  title: "Bravery Game",
+  title: "BravePulse",
   description: "A Next.js app with i18n and shadcn/ui",
 }
 
