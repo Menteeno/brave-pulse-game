@@ -9,6 +9,7 @@ import { EditPlayerDrawer } from "@/components/EditPlayerDrawer"
 import { PlayButton } from "@/components/PlayButton"
 import { getAllUsers, addUser, deleteUser } from "@/lib/dataService"
 import { hasSeenOnboarding } from "@/components/Onboarding"
+import { createUserScore } from "@/lib/apiService"
 import type { User } from "@/lib/types"
 
 export default function PlayersPage() {
@@ -67,6 +68,13 @@ export default function PlayersPage() {
 
       // Save to storage via service
       await addUser(newUser)
+
+      // Create user score in backend API (non-blocking, don't fail if API call fails)
+      const userCount = players.length + 1
+      createUserScore(newUser, userCount).catch((error) => {
+        console.error("Failed to create user score in backend:", error)
+        // Don't throw - allow user to continue even if API call fails
+      })
 
       // Update local state
       setPlayers((prev) => [...prev, newUser])
