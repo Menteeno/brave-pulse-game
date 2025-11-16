@@ -1,12 +1,12 @@
 {
   "header": {
-    "title": "بازی شجاعت",
+    "title": "BravePulse",
     "nav": {
       "home": "خانه"
     }
   },
   "home": {
-    "title": "به بازی شجاعت خوش آمدید",
+    "title": "به BravePulse خوش آمدید",
     "description": "این یک صفحه نمونه است که راه‌اندازی با Next.js، shadcn/ui و i18n را نشان می‌دهد.",
     "button": "شروع کنید"
   }
