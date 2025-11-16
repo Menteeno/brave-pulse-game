@@ -1,4 +1,4 @@
-# Bravery Game
+# BravePulse
 
 A Next.js project with TypeScript, shadcn/ui, Tailwind CSS, and i18n support.
 
