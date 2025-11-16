@@ -1,5 +1,5 @@
 /**
- * Data structure definitions for the Bravery Game application
+ * Data structure definitions for the BravePulse application
  */
 
 /**
