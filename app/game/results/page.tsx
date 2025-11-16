@@ -14,6 +14,7 @@ import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
 import { getCurrentCard, loadSituationCards } from "@/lib/gameService"
 import { nextRound } from "@/lib/gameService"
 import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
+import { updateUserScore } from "@/lib/apiService"
 import type { User, GameState, RoundScores, SituationCard, ReactionType } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 
@@ -141,6 +142,18 @@ export default function ResultsPage() {
                       setPreviousScores(previousRoundScores.playerScores)
                     }
                   }
+
+                  // Update user scores in backend API after scores are saved (non-blocking)
+                  // Update all users' scores in parallel
+                  const allUsers = await getAllUsers()
+                  Promise.all(
+                    allUsers.map((user) => updateUserScore(user, updatedState).catch((error) => {
+                      console.error(`Failed to update score for user ${user.id}:`, error)
+                      return { success: false, error: error.message }
+                    }))
+                  ).catch((error) => {
+                    console.error("Error updating user scores:", error)
+                  })
                 }
               })
               .catch((error) => {
@@ -164,6 +177,17 @@ export default function ResultsPage() {
                 }))
               )
             }
+
+            // Update user scores in backend API (non-blocking)
+            // Update all users' scores in parallel
+            Promise.all(
+              users.map((user) => updateUserScore(user, state).catch((error) => {
+                console.error(`Failed to update score for user ${user.id}:`, error)
+                return { success: false, error: error.message }
+              }))
+            ).catch((error) => {
+              console.error("Error updating user scores:", error)
+            })
           }
         }
 
