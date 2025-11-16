@@ -1,12 +1,12 @@
 {
   "header": {
-    "title": "Bravery Game",
+    "title": "BravePulse",
     "nav": {
       "home": "Home"
     }
   },
   "home": {
-    "title": "Welcome to Bravery Game",
+    "title": "Welcome to BravePulse",
     "description": "This is a sample page demonstrating the setup with Next.js, shadcn/ui, and i18n.",
     "button": "Get Started"
   },
@@ -34,7 +34,7 @@
   },
   "gameIntro": {
     "hi": "Hi",
-    "welcomeToTheGame": "Welcome to the Bravery Game!",
+    "welcomeToTheGame": "Welcome to BravePulse!",
     "title": "How to Play",
     "subtitle": "The Balance Game - Assertiveness Training",
     "objective": "Game Objective",
