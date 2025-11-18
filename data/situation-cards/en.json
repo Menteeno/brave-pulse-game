@@ -36,7 +36,7 @@
         "teamResults": {
             "allAssertive": 15,
             "allAssertiveDescription": "Leads to transparency and financial improvement",
-            "onlyOneAssertive": -10,
+            "onlyOneAssertive": -8,
             "onlyOneAssertiveDescription": "Pressure and individual firing",
             "perPersonAssertive": 0,
             "perPersonAssertiveDescription": ""
@@ -122,10 +122,10 @@
         "teamResults": {
             "allAssertive": 0,
             "allAssertiveDescription": "",
-            "onlyOneAssertive": 5,
-            "onlyOneAssertiveDescription": "Exposing a flaw in leadership",
-            "perPersonAssertive": -10,
-            "perPersonAssertiveDescription": "Exposing a flaw in leadership"
+            "onlyOneAssertive": -5,
+            "onlyOneAssertiveDescription": "Only one player showed assertive behavior in the team",
+            "perPersonAssertive": 5,
+            "perPersonAssertiveDescription": "Exposing a flaw in leadership and increasing team cohesion"
         }
     },
     {
@@ -208,9 +208,9 @@
         "teamResults": {
             "allAssertive": 0,
             "allAssertiveDescription": "",
-            "onlyOneAssertive": 0,
+            "onlyOneAssertive": -2,
             "onlyOneAssertiveDescription": "Cannot complete documentation alone",
-            "perPersonAssertive": 10,
+            "perPersonAssertive": 5,
             "perPersonAssertiveDescription": "Solving the problem at its root in the long term"
         }
     },
@@ -253,8 +253,8 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": -3,
-            "perPersonAssertiveDescription": "The team atmosphere becomes tense"
+            "perPersonAssertive": 5,
+            "perPersonAssertiveDescription": "Trying to improve team relationships"
         }
     },
     {
@@ -294,8 +294,8 @@
         "teamResults": {
             "allAssertive": 0,
             "allAssertiveDescription": "",
-            "onlyOneAssertive": 0,
-            "onlyOneAssertiveDescription": "",
+            "onlyOneAssertive": -2,
+            "onlyOneAssertiveDescription": "In this situation, only one person showed assertive behavior in the team, and the other players did not have a positive view of them",
             "perPersonAssertive": 5,
             "perPersonAssertiveDescription": "Preventing the release of a broken product"
         }
@@ -339,7 +339,7 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": -2,
+            "perPersonAssertive": -3,
             "perPersonAssertiveDescription": "Honest words point to a delay in the project"
         }
     },
@@ -425,7 +425,7 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": 1,
+            "perPersonAssertive": 2,
             "perPersonAssertiveDescription": "If assertiveness is combined with empathy, it slightly improves the situation"
         }
     },
@@ -468,8 +468,8 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": 12,
-            "perPersonAssertiveDescription": "Root-cause problem solving and maintaining ethical principles"
+            "perPersonAssertive": -6,
+            "perPersonAssertiveDescription": "Destroying team relationships and increasing tension in the team"
         }
     },
     {
