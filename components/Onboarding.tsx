@@ -425,6 +425,22 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                 </Alert>
             ),
         },
+        {
+            id: "beReady",
+            content: (
+                <div className="flex flex-col items-center gap-2 justify-center">
+                    <div className="flex items-center justify-center mb-6">
+                        <CheckCircle className="size-20 text-green-500" />
+                    </div>
+                    <h2 className="font-semibold text-2xl">
+                        {t("gameIntro.beReady")}
+                    </h2>
+                    <p className="text-base text-muted-foreground leading-relaxed">
+                        {t("gameIntro.beReadyDescription")}
+                    </p>
+                </div>
+            ),
+        },
     ], [t, maxRounds])
 
     // Store slides length in ref for use in swipe handlers
