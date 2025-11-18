@@ -17,6 +17,8 @@ import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
 import { updateUserScore } from "@/lib/apiService"
 import type { User, GameState, RoundScores, SituationCard, ReactionType } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
+import { useAchievements } from "@/lib/hooks/useAchievements"
+import { AchievementUnlockedModal } from "@/components/AchievementUnlockedModal"
 
 export default function ResultsPage() {
   const { t, i18n } = useTranslation("common")
@@ -33,6 +35,15 @@ export default function ResultsPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
   const isInitializedRef = useRef(false)
+
+  // Achievement management
+  const {
+    checkAndUnlockAchievements,
+    nextUnlocked,
+    removeFirstUnlockedAchievement,
+    hasUnlockedAchievements,
+  } = useAchievements()
+
 
   useEffect(() => {
     // Prevent re-initialization if already initialized
@@ -143,6 +154,17 @@ export default function ResultsPage() {
                     }
                   }
 
+                  // Check achievements for round_end trigger
+                  // Make sure we have the latest state with reactions
+                  const latestState = await getGameState()
+                  if (latestState) {
+                    checkAndUnlockAchievements("round_end", latestState, {
+                      roundScores: roundScores.playerScores,
+                    }).catch((error) => {
+                      console.error("Error checking achievements:", error)
+                    })
+                  }
+
                   // Update user scores in backend API after scores are saved (non-blocking)
                   // Update all users' scores in parallel
                   const allUsers = await getAllUsers()
@@ -177,6 +199,13 @@ export default function ResultsPage() {
                 }))
               )
             }
+
+            // Check achievements for round_end trigger (even if scores already exist)
+            checkAndUnlockAchievements("round_end", state, {
+              roundScores: lastRoundScores.playerScores,
+            }).catch((error) => {
+              console.error("Error checking achievements:", error)
+            })
 
             // Update user scores in backend API (non-blocking)
             // Update all users' scores in parallel
@@ -927,6 +956,21 @@ export default function ResultsPage() {
           player={selectedPlayer}
           gameState={gameState}
           cards={allCards}
+        />
+      )}
+
+      {/* Achievement Unlocked Modal */}
+      {nextUnlocked && (
+        <AchievementUnlockedModal
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) {
+              removeFirstUnlockedAchievement()
+            }
+          }}
+          achievement={nextUnlocked.achievement}
+          player={nextUnlocked.player}
+          isTeamAchievement={nextUnlocked.isTeamAchievement}
         />
       )}
     </div>
