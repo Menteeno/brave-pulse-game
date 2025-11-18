@@ -36,7 +36,7 @@
         "teamResults": {
             "allAssertive": 15,
             "allAssertiveDescription": "منجر به شفافیت و بهبود مالی می‌شود",
-            "onlyOneAssertive": -10,
+            "onlyOneAssertive": -8,
             "onlyOneAssertiveDescription": "فشار و اخراج فردی",
             "perPersonAssertive": 0,
             "perPersonAssertiveDescription": ""
@@ -122,10 +122,10 @@
         "teamResults": {
             "allAssertive": 0,
             "allAssertiveDescription": "",
-            "onlyOneAssertive": 5,
-            "onlyOneAssertiveDescription": "افشای نقص در رهبری",
-            "perPersonAssertive": -10,
-            "perPersonAssertiveDescription": "افشای نقص در رهبری"
+            "onlyOneAssertive": -5,
+            "onlyOneAssertiveDescription": "فقط یک بازیکن در تیم جراتمندی نشان داد",
+            "perPersonAssertive": 5,
+            "perPersonAssertiveDescription": "حل مشکل در ریشه آن و افزایش همدلی در تیم"
         }
     },
     {
@@ -208,10 +208,10 @@
         "teamResults": {
             "allAssertive": 0,
             "allAssertiveDescription": "",
-            "onlyOneAssertive": 0,
+            "onlyOneAssertive": -2,
             "onlyOneAssertiveDescription": "نمی‌تواند مستندات را به تنهایی تکمیل کند",
-            "perPersonAssertive": 10,
-            "perPersonAssertiveDescription": "حل مشکل در ریشه آن در درازمدت"
+            "perPersonAssertive": 5,
+            "perPersonAssertiveDescription": "حل مشکل در ریشه آن"
         }
     },
     {
@@ -253,8 +253,8 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": -3,
-            "perPersonAssertiveDescription": "جو تیم متشنج می‌شود"
+            "perPersonAssertive": 5,
+            "perPersonAssertiveDescription": "تلاش برای بهبود روابط در تیم"
         }
     },
     {
@@ -294,8 +294,8 @@
         "teamResults": {
             "allAssertive": 0,
             "allAssertiveDescription": "",
-            "onlyOneAssertive": 0,
-            "onlyOneAssertiveDescription": "",
+            "onlyOneAssertive": -2,
+            "onlyOneAssertiveDescription": "در این موقعیت، تنها یک نفر رفتار جراتمندانه‌ای نشان داد و سایر اعضای تیم اعتماد و نگرش مثبتی نسبت به او ندارند.",
             "perPersonAssertive": 5,
             "perPersonAssertiveDescription": "جلوگیری از انتشار محصول معیوب"
         }
@@ -339,8 +339,8 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": -2,
-            "perPersonAssertiveDescription": "کلمات صادقانه نشان‌دهنده تاخیر در پروژه است"
+            "perPersonAssertive": -3,
+            "perPersonAssertiveDescription": "تخریب روابط در تیم و افزایش تنش در تیم"
         }
     },
     {
@@ -425,7 +425,7 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": 1,
+            "perPersonAssertive": 2,
             "perPersonAssertiveDescription": "اگر جراتمندی با همدلی ترکیب شود، وضعیت را کمی بهبود می‌بخشد"
         }
     },
@@ -468,8 +468,8 @@
             "allAssertiveDescription": "",
             "onlyOneAssertive": 0,
             "onlyOneAssertiveDescription": "",
-            "perPersonAssertive": 12,
-            "perPersonAssertiveDescription": "حل مشکل در ریشه و حفظ اصول اخلاقی"
+            "perPersonAssertive": -6,
+            "perPersonAssertiveDescription": "تخریب روابط در تیم و افزایش تنش در تیم"
         }
     },
     {
