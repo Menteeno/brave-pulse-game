@@ -467,3 +467,49 @@ export async function updateUserScore(
     }
 }
 
+/**
+ * Unlock an achievement for a user
+ */
+export async function unlockAchievement(
+    achievementSlug: string,
+    email: string
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const gameSlug = getGameSlug()
+
+        const response = await fetch(
+            `${BACKEND_URL}/v1/games/${gameSlug}/achievements/${achievementSlug}/unlock`,
+            {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    "X-Game-API-Key": GAME_API_KEY,
+                },
+                body: JSON.stringify({
+                    email,
+                }),
+            }
+        )
+
+        if (!response.ok) {
+            const errorText = await response.text()
+            console.error("Failed to unlock achievement:", response.status, errorText)
+            return {
+                success: false,
+                error: `API error: ${response.status}`,
+            }
+        }
+
+        return {
+            success: true,
+        }
+    } catch (error) {
+        console.error("Error unlocking achievement:", error)
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
+
