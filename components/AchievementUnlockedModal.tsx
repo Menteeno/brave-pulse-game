@@ -35,7 +35,7 @@ function getIconComponent(iconName: string) {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join("")
   
-  const IconComponent = (LucideIcons as Record<string, React.ComponentType<any>>)[pascalCase]
+  const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<any>>)[pascalCase]
   return IconComponent || LucideIcons.Award
 }
 
