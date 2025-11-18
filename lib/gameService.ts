@@ -284,8 +284,6 @@ export async function saveReactionFeedback(
   } else {
     // Add new feedback
     updatedFeedback = [...existingFeedback, feedback]
-
-    console.log(`[saveReactionFeedback] Adding new feedback for player ${playerId}:`, feedback)
   }
 
   const updatedReactions = [...gameState.reactions]
