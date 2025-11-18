@@ -176,6 +176,7 @@
       "subtitle": "The game has ended! View the final results",
       "teamScore": "Final Team Score",
       "winner": "Winner",
+      "winners": "Winners",
       "totalScore": "Total Score",
       "playersRanking": "Players Ranking",
       "newGame": "New Game",
@@ -188,5 +189,58 @@
     "description": "List of all data stored in your browser",
     "noData": "No data stored",
     "deleteConfirm": "Are you sure you want to delete \"{{key}}\"?"
+  },
+  "achievements": {
+    "ironMind": {
+      "name": "Iron Mind",
+      "description": "No Burnout throughout the entire game."
+    },
+    "brave10": {
+      "name": "Brave 10",
+      "description": "Reach a personal Assertiveness score of 10 or more."
+    },
+    "tripleBalance": {
+      "name": "Triple Balance",
+      "description": "At the end of the game, all 3 KPIs are above 10."
+    },
+    "theNegotiator": {
+      "name": "The Negotiator",
+      "description": "Use the Assertive card at least 3 times without falling into Burnout."
+    },
+    "zeroPassive": {
+      "name": "Zero Passive",
+      "description": "Do not play any Passive card."
+    },
+    "loneBrave": {
+      "name": "Lone Brave",
+      "description": "In one situation, be the only player to play an Assertive card."
+    },
+    "noBurnoutSquad": {
+      "name": "No Burnout Squad",
+      "description": "No team member has Burnout."
+    },
+    "perfectSprint": {
+      "name": "Perfect Sprint",
+      "description": "In one round, all players play Assertive cards."
+    },
+    "club50": {
+      "name": "50 Club",
+      "description": "Team reaches a team score of 50+."
+    },
+    "club75": {
+      "name": "75 Club",
+      "description": "Team reaches a team score of 75+."
+    },
+    "club100": {
+      "name": "100 Club",
+      "description": "Team reaches a team score of 100+."
+    },
+    "unlocked": {
+      "title": "Achievement Unlocked!",
+      "individual": "{{playerName}} unlocked the achievement «{{achievementName}}»!",
+      "team": "Team unlocked the achievement «{{achievementName}}»!",
+      "xpEarned": "{{xp}} XP earned",
+      "close": "Close"
+    }
   }
 }
