@@ -21,9 +21,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { getAllUsers, getGameState } from "@/lib/dataService"
 import type { User as UserType, GameState, PlayerScores } from "@/lib/types"
+import { useAchievements } from "@/lib/hooks/useAchievements"
+import { AchievementUnlockedModal } from "@/components/AchievementUnlockedModal"
 
 interface PlayerFinalScore extends PlayerScores {
   totalScore: number
+  assertivenessScore: number // selfRespect + goalAchievement
   user: UserType
 }
 
@@ -277,6 +280,13 @@ export default function FinalResultsPage() {
   const [showConfetti, setShowConfetti] = useState(false)
   const isInitializedRef = useRef(false)
 
+  // Achievement management
+  const {
+    checkAndUnlockAchievements,
+    nextUnlocked,
+    removeFirstUnlockedAchievement,
+  } = useAchievements()
+
   useEffect(() => {
     if (isInitializedRef.current) return
 
@@ -314,17 +324,33 @@ export default function FinalResultsPage() {
               playerScore.selfRespect +
               playerScore.relationshipHealth +
               playerScore.goalAchievement
+            const assertivenessScore = playerScore.selfRespect + playerScore.goalAchievement
             return {
               ...playerScore,
               totalScore,
+              assertivenessScore,
               user,
             }
           })
           .filter((score): score is PlayerFinalScore => score !== null)
 
-        playerScoresWithTotal.sort((a, b) => b.totalScore - a.totalScore)
+        // Sort: first by totalScore, then by assertivenessScore if totalScore is equal
+        playerScoresWithTotal.sort((a, b) => {
+          if (b.totalScore !== a.totalScore) {
+            return b.totalScore - a.totalScore
+          }
+          // If totalScore is equal, sort by assertivenessScore
+          return b.assertivenessScore - a.assertivenessScore
+        })
         setFinalScores(playerScoresWithTotal)
         setFinalTeamScore(lastRoundScores.teamScore)
+
+        // Check achievements for game_end trigger
+        checkAndUnlockAchievements("game_end", state, {
+          finalScores: lastRoundScores.playerScores,
+        }).catch((error) => {
+          console.error("Error checking achievements:", error)
+        })
 
         // Show confetti after a short delay
         setTimeout(() => setShowConfetti(true), 500)
@@ -352,7 +378,14 @@ export default function FinalResultsPage() {
     )
   }
 
-  const winner = finalScores[0]
+  // Get winners: players with the highest totalScore and assertivenessScore
+  const topScore = finalScores[0]?.totalScore ?? 0
+  const topAssertiveness = finalScores[0]?.assertivenessScore ?? 0
+  const winners = finalScores.filter(
+    (score) => score.totalScore === topScore && score.assertivenessScore === topAssertiveness
+  )
+  const winner = winners[0] // For display purposes, use first winner
+  const isMultipleWinners = winners.length > 1
   const maxKPI = 15
 
   return (
@@ -412,30 +445,62 @@ export default function FinalResultsPage() {
                   <Trophy className="relative w-16 h-16 text-yellow-700 dark:text-yellow-900 drop-shadow-lg animate-bounce" />
                 </div>
                 <CardTitle className="text-center text-2xl font-black text-yellow-900 dark:text-yellow-950 mb-2">
-                  {t("game.finalResults.winner")}
+                  {isMultipleWinners
+                    ? t("game.finalResults.winners", { count: winners.length })
+                    : t("game.finalResults.winner")}
                 </CardTitle>
-                <div className="text-xl font-bold text-yellow-800 dark:text-yellow-900">
-                  {`${winner.user.firstName} ${winner.user.lastName}`}
+                <div className="text-xl font-bold text-yellow-800 dark:text-yellow-900 text-center">
+                  {isMultipleWinners
+                    ? winners
+                      .map((w) => `${w.user.firstName} ${w.user.lastName}`)
+                      .join(" & ")
+                    : `${winner.user.firstName} ${winner.user.lastName}`}
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col items-center gap-4 pb-6">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl opacity-60 animate-pulse" />
-                  <Avatar className="relative w-28 h-28 rounded-full border-4 border-yellow-200 dark:border-yellow-300 shadow-2xl">
-                    <AvatarImage
-                      src={getAvatarSrc(winner.user.email)}
-                      alt={`${winner.user.firstName} ${winner.user.lastName}`}
-                      className="rounded-full"
-                    />
-                    <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white text-4xl font-black">
-                      {winner.user.firstName?.charAt(0)}
-                      {winner.user.lastName?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -top-2 -end-2">
-                    <Crown className="w-8 h-8 text-yellow-600 animate-bounce" />
+                {isMultipleWinners ? (
+                  // Multiple winners - show all avatars
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    {winners.map((w, index) => (
+                      <div key={w.playerId} className="relative">
+                        <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl opacity-60 animate-pulse" />
+                        <Avatar className="relative w-20 h-20 rounded-full border-4 border-yellow-200 dark:border-yellow-300 shadow-2xl">
+                          <AvatarImage
+                            src={getAvatarSrc(w.user.email)}
+                            alt={`${w.user.firstName} ${w.user.lastName}`}
+                            className="rounded-full"
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white text-2xl font-black">
+                            {w.user.firstName?.charAt(0)}
+                            {w.user.lastName?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -top-1 -end-1">
+                          <Crown className="w-6 h-6 text-yellow-600 animate-bounce" style={{ animationDelay: `${index * 0.1}s` }} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  // Single winner
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl opacity-60 animate-pulse" />
+                    <Avatar className="relative w-28 h-28 rounded-full border-4 border-yellow-200 dark:border-yellow-300 shadow-2xl">
+                      <AvatarImage
+                        src={getAvatarSrc(winner.user.email)}
+                        alt={`${winner.user.firstName} ${winner.user.lastName}`}
+                        className="rounded-full"
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-yellow-600 text-white text-4xl font-black">
+                        {winner.user.firstName?.charAt(0)}
+                        {winner.user.lastName?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -top-2 -end-2">
+                      <Crown className="w-8 h-8 text-yellow-600 animate-bounce" />
+                    </div>
+                  </div>
+                )}
                 <div className="w-full space-y-3">
                   <div className="text-center">
                     <div className="text-sm font-semibold text-yellow-800 dark:text-yellow-900 mb-1">
@@ -445,32 +510,34 @@ export default function FinalResultsPage() {
                       <AnimatedCounter value={winner.totalScore} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-white/70 dark:bg-yellow-950/50 rounded-xl p-3 text-center backdrop-blur-sm">
-                      <div className="text-xs font-semibold text-yellow-800 dark:text-yellow-900 mb-1">
-                        {t("gameIntro.kpiSelfRespect")}
+                  {!isMultipleWinners && (
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-white/70 dark:bg-yellow-950/50 rounded-xl p-3 text-center backdrop-blur-sm">
+                        <div className="text-xs font-semibold text-yellow-800 dark:text-yellow-900 mb-1">
+                          {t("gameIntro.kpiSelfRespect")}
+                        </div>
+                        <div className="text-2xl font-black text-yellow-900 dark:text-yellow-950">
+                          {winner.selfRespect}
+                        </div>
                       </div>
-                      <div className="text-2xl font-black text-yellow-900 dark:text-yellow-950">
-                        {winner.selfRespect}
+                      <div className="bg-white/70 dark:bg-yellow-950/50 rounded-xl p-3 text-center backdrop-blur-sm">
+                        <div className="text-xs font-semibold text-yellow-800 dark:text-yellow-900 mb-1">
+                          {t("gameIntro.kpiRelationship")}
+                        </div>
+                        <div className="text-2xl font-black text-yellow-900 dark:text-yellow-950">
+                          {winner.relationshipHealth}
+                        </div>
+                      </div>
+                      <div className="bg-white/70 dark:bg-yellow-950/50 rounded-xl p-3 text-center backdrop-blur-sm">
+                        <div className="text-xs font-semibold text-yellow-800 dark:text-yellow-900 mb-1">
+                          {t("gameIntro.kpiGoal")}
+                        </div>
+                        <div className="text-2xl font-black text-yellow-900 dark:text-yellow-950">
+                          {winner.goalAchievement}
+                        </div>
                       </div>
                     </div>
-                    <div className="bg-white/70 dark:bg-yellow-950/50 rounded-xl p-3 text-center backdrop-blur-sm">
-                      <div className="text-xs font-semibold text-yellow-800 dark:text-yellow-900 mb-1">
-                        {t("gameIntro.kpiRelationship")}
-                      </div>
-                      <div className="text-2xl font-black text-yellow-900 dark:text-yellow-950">
-                        {winner.relationshipHealth}
-                      </div>
-                    </div>
-                    <div className="bg-white/70 dark:bg-yellow-950/50 rounded-xl p-3 text-center backdrop-blur-sm">
-                      <div className="text-xs font-semibold text-yellow-800 dark:text-yellow-900 mb-1">
-                        {t("gameIntro.kpiGoal")}
-                      </div>
-                      <div className="text-2xl font-black text-yellow-900 dark:text-yellow-950">
-                        {winner.goalAchievement}
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </div>
@@ -501,6 +568,21 @@ export default function FinalResultsPage() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Achievement Unlocked Modal */}
+      {nextUnlocked && (
+        <AchievementUnlockedModal
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) {
+              removeFirstUnlockedAchievement()
+            }
+          }}
+          achievement={nextUnlocked.achievement}
+          player={nextUnlocked.player}
+          isTeamAchievement={nextUnlocked.isTeamAchievement}
+        />
+      )}
     </>
   )
 }
