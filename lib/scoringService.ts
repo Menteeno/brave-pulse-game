@@ -282,10 +282,21 @@ export async function calculateRoundScores(
         kpi: indicatorReachedZero,
       })
 
-      // 4. Mark player as fatigued for the next round (currentRound + 1)
+      // 4. Mark player as fatigued for the appropriate round
+      // If the burned-out player is the next active player, they don't play in the next round,
+      // so the fatigue should apply to the round after that (currentRound + 2)
+      // Otherwise, apply fatigue to the next round (currentRound + 1)
+      const currentActivePlayerIndex = gameState.players.indexOf(gameState.activePlayerId || "")
+      const nextActivePlayerIndex = (currentActivePlayerIndex + 1) % gameState.players.length
+      const nextActivePlayerId = gameState.players[nextActivePlayerIndex] || null
+
+      const fatigueRound = playerScore.playerId === nextActivePlayerId
+        ? gameState.currentRound + 2  // Skip next round (they're active player) and apply to round after
+        : gameState.currentRound + 1   // Apply to next round as usual
+
       fatiguedPlayers.push({
         playerId: playerScore.playerId,
-        round: gameState.currentRound + 1,
+        round: fatigueRound,
       })
     }
   })
