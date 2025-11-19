@@ -156,6 +156,8 @@
     "customCostQuestion": "Which of your parameters should this cost be applied to?",
     "customCostSubmit": "Submit Selection",
     "customCost": "Custom Cost",
+    "customCostHandoverTitle": "Hand Over Device",
+    "customCostHandoverDescription": "Please hand over the device to {{name}} so they can make their selection.",
     "appliedTo": "Applied to",
     "fatigueWarning": "This player is fatigued and cannot play assertively",
     "fatigueCannotPlayAssertive": "This player is fatigued and cannot play assertively",

@@ -159,6 +159,8 @@
     "customCostQuestion": "این هزینه روی کدام یک از پارامترهای شما اعمال شود؟",
     "customCostSubmit": "ثبت انتخاب",
     "customCost": "هزینه سفارشی",
+    "customCostHandoverTitle": "تحویل گوشی",
+    "customCostHandoverDescription": "لطفاً گوشی را به {{name}} تحویل دهید تا بتواند انتخاب خود را انجام دهد.",
     "appliedTo": "اعمال می‌شود بر",
     "fatigueWarning": "این بازیکن فرسوده است و نمی‌تواند جراتمندانه بازی کند",
     "fatigueCannotPlayAssertive": "این بازیکن فرسوده است و نمی‌تواند جراتمندانه بازی کند",

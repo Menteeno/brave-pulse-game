@@ -8,6 +8,14 @@ import Image from "next/image"
 import { PlayersHeader } from "@/components/PlayersHeader"
 import { PlayerProfileModal } from "@/components/PlayerProfileModal"
 import { Button } from "@/components/ui/button"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { getAllUsers, getGameState, saveCheckpoint } from "@/lib/dataService"
 import { getCurrentCard, loadSituationCards, saveReactionFeedback } from "@/lib/gameService"
 import { calculateRoundScores, saveRoundScores } from "@/lib/scoringService"
@@ -32,7 +40,9 @@ function CustomCostPageContent() {
     const [isLoading, setIsLoading] = useState(true)
     const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null)
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
+    const [isHandoverModalOpen, setIsHandoverModalOpen] = useState(false)
     const isInitializedRef = useRef<string | null>(null)
+    const lastPlayerIdRef = useRef<string | null>(null)
 
     useEffect(() => {
         const playerId = searchParams.get("playerId")
@@ -40,6 +50,10 @@ function CustomCostPageContent() {
         // Reset if playerId changed (allow re-initialization for different players)
         if (isInitializedRef.current !== playerId) {
             isInitializedRef.current = null
+            // Reset lastPlayerIdRef when playerId changes
+            if (playerId && lastPlayerIdRef.current !== playerId) {
+                lastPlayerIdRef.current = null
+            }
         }
 
         // Prevent re-initialization if already initialized for this playerId
@@ -102,6 +116,14 @@ function CustomCostPageContent() {
                 }
 
                 setCurrentPlayer(player)
+
+                // Reset selectedKpi when player changes and show handover modal
+                if (lastPlayerIdRef.current !== playerId && playerId) {
+                    setSelectedKpi(null)
+                    lastPlayerIdRef.current = playerId
+                    // Show handover modal for new player
+                    setIsHandoverModalOpen(true)
+                }
 
                 // Get player's reaction from last round
                 const lastRoundReactions = state.reactions?.[state.reactions.length - 1]
@@ -423,6 +445,32 @@ function CustomCostPageContent() {
                     {t("game.customCostSubmit")}
                 </Button>
             </div>
+
+            {/* Handover Modal */}
+            {currentPlayer && (
+                <Dialog open={isHandoverModalOpen} onOpenChange={setIsHandoverModalOpen}>
+                    <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle className="text-center">
+                                {t("game.customCostHandoverTitle")}
+                            </DialogTitle>
+                            <DialogDescription className="text-center pt-2">
+                                {t("game.customCostHandoverDescription", {
+                                    name: `${currentPlayer.firstName} ${currentPlayer.lastName}`,
+                                })}
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="sm:justify-center">
+                            <Button
+                                onClick={() => setIsHandoverModalOpen(false)}
+                                className="bg-green-500 hover:bg-green-600 w-full sm:w-auto"
+                            >
+                                {t("understood")}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
 
             {/* Player Profile Modal */}
             {selectedPlayer && (
