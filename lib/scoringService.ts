@@ -11,6 +11,7 @@ import {
   ReactionFeedback,
   PlayerFatigue,
   PlayerBurnout,
+  AggressiveReaction,
 } from "./types"
 import { getGameState, saveGameState } from "./dataService"
 import { getCurrentCard } from "./gameService"
@@ -235,6 +236,16 @@ export async function calculateRoundScores(
     currentTeamScore
   )
 
+  // Calculate aggressive penalty: -3 points per aggressive reaction
+  const aggressiveReactions: AggressiveReaction[] = lastRoundReactions.reactions
+    .filter((r) => r.reaction === "aggressive")
+    .map((r) => ({
+      playerId: r.playerId,
+      round: gameState.currentRound,
+    }))
+  const aggressivePenalty = aggressiveReactions.length * -3
+  newTeamScore += aggressivePenalty
+
   // Check for burnout: if any indicator reaches 0, apply burnout mechanic
   const fatiguedPlayers: PlayerFatigue[] = []
   const burnoutEvents: PlayerBurnout[] = []
@@ -290,6 +301,7 @@ export async function calculateRoundScores(
     feedback: feedbackToUse, // Use feedbackToUse instead of feedback parameter
     fatiguedPlayers: fatiguedPlayers.length > 0 ? fatiguedPlayers : undefined,
     burnoutEvents: burnoutEvents.length > 0 ? burnoutEvents : undefined,
+    aggressiveReactions: aggressiveReactions.length > 0 ? aggressiveReactions : undefined,
   }
 }
 
