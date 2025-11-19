@@ -120,6 +120,14 @@ export interface ReactionFeedback {
 }
 
 /**
+ * Represents an aggressive reaction event
+ */
+export interface AggressiveReaction {
+  playerId: string
+  round: number // The round in which aggressive reaction occurred
+}
+
+/**
  * Round score calculations
  */
 export interface RoundScores {
@@ -130,6 +138,7 @@ export interface RoundScores {
   feedback?: ReactionFeedback[] // Feedback from active player for assertive/aggressive reactions
   fatiguedPlayers?: PlayerFatigue[] // Players who experienced fatigue in this round
   burnoutEvents?: PlayerBurnout[] // Players who experienced burnout in this round
+  aggressiveReactions?: AggressiveReaction[] // Players who played aggressively in this round
 }
 
 /**
