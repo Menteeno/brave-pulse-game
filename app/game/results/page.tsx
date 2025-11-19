@@ -838,6 +838,10 @@ export default function ResultsPage() {
               const burnoutEvents = roundScores.burnoutEvents || []
               const burnoutPenalty = burnoutEvents.length * -10
 
+              // Calculate team costs from aggressive reactions
+              const aggressiveReactions = roundScores.aggressiveReactions || []
+              const aggressivePenalty = aggressiveReactions.length * -3
+
               const gains: Array<{
                 kpi: string
                 change: number
@@ -851,6 +855,12 @@ export default function ResultsPage() {
 
               if (teamGain > 0) {
                 gains.push({
+                  kpi: t("game.teamScoreGain"),
+                  change: teamGain,
+                  description: teamGainDescription,
+                })
+              } else if (teamGain < 0) {
+                costs.push({
                   kpi: t("game.teamScoreGain"),
                   change: teamGain,
                   description: teamGainDescription,
@@ -870,6 +880,23 @@ export default function ResultsPage() {
                 costs.push({
                   kpi: t("game.burnoutTeamPenalty"),
                   change: burnoutPenalty,
+                  description: penaltyDescription,
+                })
+              }
+
+              if (aggressivePenalty < 0) {
+                const penaltyDescription = aggressiveReactions.length === 1
+                  ? t("game.aggressiveTeamPenaltyDescription", {
+                    playerName: (() => {
+                      const aggressivePlayer = players.find(p => p.id === aggressiveReactions[0].playerId)
+                      return aggressivePlayer ? `${aggressivePlayer.firstName} ${aggressivePlayer.lastName}` : ""
+                    })()
+                  })
+                  : t("game.aggressiveTeamPenaltyMultiple", { count: aggressiveReactions.length })
+
+                costs.push({
+                  kpi: t("game.aggressiveTeamPenalty"),
+                  change: aggressivePenalty,
                   description: penaltyDescription,
                 })
               }
