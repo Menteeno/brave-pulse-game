@@ -54,8 +54,8 @@ export function AddPlayerDrawer({ onAdd }: AddPlayerDrawerProps) {
   }
 
   return (
-    <Drawer 
-      open={open} 
+    <Drawer
+      open={open}
       onOpenChange={(newOpen) => {
         setOpen(newOpen)
         if (!newOpen) {
@@ -74,13 +74,13 @@ export function AddPlayerDrawer({ onAdd }: AddPlayerDrawerProps) {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>{t("players.addTeammate")}</DrawerTitle>
-          <DrawerDescription>
+          <DrawerTitle className="text-center">{t("players.addTeammate")}</DrawerTitle>
+          <DrawerDescription className="text-center">
             {t("players.addTeammateSubtitle")}
           </DrawerDescription>
         </DrawerHeader>
-        <form onSubmit={handleSubmit} className="px-4 pb-4 space-y-4" onReset={() => setError(null)}>
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="pb-4 space-y-4" onReset={() => setError(null)}>
+          <div className="grid px-4 grid-cols-2 gap-4">
             <Input
               name="firstName"
               placeholder={t("players.firstName")}
@@ -96,7 +96,7 @@ export function AddPlayerDrawer({ onAdd }: AddPlayerDrawerProps) {
               required
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 px-4">
             <Input
               name="email"
               type="email"
