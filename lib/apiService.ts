@@ -6,9 +6,9 @@ import type { User, GameState } from "./types"
 import { getAllUsers } from "./dataService"
 import { loadSituationCards } from "./gameService"
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACK_END_URL || "http://menteeno.local/api"
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACK_END_URL || "https://console.menteeno.app/api"
 const GAME_API_KEY = process.env.NEXT_PUBLIC_GAME_API_KEY || "qwertyuiop"
-const GAME_SLUG = process.env.NEXT_PUBLIC_GAME_SLUG || "default"
+const GAME_SLUG = process.env.NEXT_PUBLIC_GAME_SLUG || "brave-pulse"
 
 // Storage key for game score IDs
 const GAME_SCORE_IDS_KEY = "bravery_game_score_ids"
