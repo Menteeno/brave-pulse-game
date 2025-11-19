@@ -70,8 +70,8 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
   }
 
   return (
-    <Drawer 
-      open={open} 
+    <Drawer
+      open={open}
       onOpenChange={(newOpen) => {
         setOpen(newOpen)
         if (!newOpen) {
@@ -82,7 +82,7 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
       <div className="relative group">
         {trigger}
         <DrawerTrigger asChild>
-          <button 
+          <button
             className="absolute -top-2 -start-2 h-7 w-7 rounded-full bg-white shadow-md hover:bg-gray-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
             onClick={(e) => {
               e.stopPropagation()
@@ -94,13 +94,13 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
       </div>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>{t("players.editTeammate")}</DrawerTitle>
-          <DrawerDescription>
+          <DrawerTitle className="text-center">{t("players.editTeammate")}</DrawerTitle>
+          <DrawerDescription className="text-center">
             {t("players.editTeammateSubtitle")}
           </DrawerDescription>
         </DrawerHeader>
-        <form onSubmit={handleSubmit} className="px-4 pb-4 space-y-4" onReset={() => setError(null)}>
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="pb-4 space-y-4" onReset={() => setError(null)}>
+          <div className="grid px-4 grid-cols-2 gap-4">
             <Input
               name="firstName"
               placeholder={t("players.firstName")}
@@ -116,7 +116,7 @@ export function EditPlayerDrawer({ user, onUpdate, trigger }: EditPlayerDrawerPr
               required
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 px-4">
             <Input
               name="email"
               type="email"
