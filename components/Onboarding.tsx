@@ -290,6 +290,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                             <div className="text-base space-y-1">
                                 <p className="text-green-600">✓ {t("gameIntro.cardAggressiveBenefit")}</p>
                                 <p className="text-red-600">✗ {t("gameIntro.cardAggressiveCost")}</p>
+                                <p className="text-red-600">✗ {t("gameIntro.cardAggressiveTeamPenalty")}</p>
                             </div>
                         </div>
 
