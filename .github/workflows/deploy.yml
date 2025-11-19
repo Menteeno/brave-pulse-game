@@ -48,7 +48,7 @@ jobs:
           NEXT_PUBLIC_GAME_API_KEY: ${{ vars.NEXT_PUBLIC_GAME_API_KEY }}
           NEXT_PUBLIC_GAME_SLUG: ${{ vars.NEXT_PUBLIC_GAME_SLUG }}
           NEXT_PUBLIC_MAX_ROUNDS: ${{ vars.NEXT_PUBLIC_MAX_ROUNDS || '12' }}
-          NEXT_PUBLIC_CARD_ORDER: ${{ vars.NEXT_PUBLIC_CARD_ORDER }}
+          NEXT_PUBLIC_CARD_ORDER: ${{ vars.NEXT_PUBLIC_CARD_ORDER || 'order' }}
         run: pnpm run build
 
       - name: Upload artifact
