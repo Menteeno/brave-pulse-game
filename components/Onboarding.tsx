@@ -298,8 +298,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
                         <div className="border-s-4 border-green-500 ps-4 space-y-2">
                             <h3 className="font-semibold text-base text-green-700">{t("gameIntro.cardAssertive")}</h3>
                             <div className="text-base space-y-1">
-                                <p className="text-green-600">✓ {t("gameIntro.cardAssertiveBenefit")}</p>
-                                <p className="text-red-600">✗ {t("gameIntro.cardAssertiveCost")}</p>
+                                <p className="">{t("gameIntro.cardAssertiveBenefit")}</p>
                             </div>
                             <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
                                 {t("gameIntro.cardAssertiveNote")}
